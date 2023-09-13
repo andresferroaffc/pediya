@@ -11,10 +11,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { menssageSuccessResponse } from '../messages';
 import { RoleService } from './role.service';
-import {
-  HttpResponse,
-  HttpResponsePagination,
-} from '../shared/dto';
+import { HttpResponse, HttpResponsePagination } from '../shared/dto';
 import { Role } from '../shared/entity';
 import { Roles } from 'src/common/decorator';
 import { RoleEnum } from '../common/enum';
