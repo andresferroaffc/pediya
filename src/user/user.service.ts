@@ -48,6 +48,7 @@ export class UserService {
             console.log(error);
           },
         );
+        delete data.password;
         return data;
       })
       .catch(async (error) => {
@@ -77,7 +78,7 @@ export class UserService {
           menssageErrorResponse('usuario').getOneError,
         );
       });
-    validatExistException(data, 'usuario', 'validatExistOne');
+    validatExistException(data, 'usuario', 'ValidateNoexist');
     return data;
   }
 
@@ -109,8 +110,8 @@ export class UserService {
     sort = !sort ? 'id' : sort;
     order = !order ? 'ASC' : order;
     const orderBy = SelectOrderBy(order);
-    const paginateData = this.userRepo.createQueryBuilder('user');
-    paginateData.orderBy(`role.${sort}`, orderBy[0]);
+    const paginateData = await this.userRepo.createQueryBuilder('user');
+    paginateData.orderBy(`user.${sort}`, orderBy[0]);
     paginateData.getMany().catch(async (error) => {
       console.log(error);
       throw new BadRequestException(menssageErrorResponse('usuarios').getError);

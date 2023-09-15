@@ -6,10 +6,10 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { SendemailService } from '../sendemail/sendemail.service';
 import { Role, User } from '../shared/entity';
-import { AuthLoginDto, RestPassworDto } from 'src/shared/dto';
-import { menssageErrorResponse } from 'src/messages';
-import { validatExistException } from 'src/common/utils';
-import { templateResetpass } from 'src/sendemail/templates';
+import { AuthLoginDto, RestPassworDto } from '../shared/dto';
+import { menssageErrorResponse } from '../messages';
+import { validatExistException } from '../common/utils';
+import { templateResetpass } from '../sendemail/templates';
 
 @Injectable()
 export class AuthService {
@@ -80,23 +80,20 @@ export class AuthService {
     });
     validatExistException(user, 'email', 'ValidateNoexist');
     const linkReset = uuidv4();
-    return await this.usersRepo
+    await this.usersRepo
       .update({ id: user.id }, { resetPasswordToken: linkReset })
-      .then(async () => {
+      .then(() => {
         const html = templateResetpass(linkReset);
-        const data = await this.emailService
+        this.emailService
           .sendemail('Olvido su contraseña', user.email, html)
-          .catch(async (Error) => {
+          .catch((Error) => {
             console.log(Error);
-            throw new BadRequestException(
-              menssageErrorResponse(JSON.stringify(Error)).emailError,
-            );
           });
-        return data.accepted;
       })
       .catch(async (Error) => {
         throw new BadRequestException('Error', Error);
       });
+    return true;
   }
 
   // Cambiar contraseña
@@ -106,7 +103,7 @@ export class AuthService {
       user: dto.user,
       status: true,
     });
-    validatExistException(user, 'codigo', 'ValidateNoexist');
+    validatExistException(user, 'token', 'ValidateNoexist');
 
     const newPassword = await bcrypt.hashSync(dto.password, 10);
 
@@ -119,6 +116,6 @@ export class AuthService {
         throw new BadRequestException('Error', Error.detail);
       });
 
-    return { data: true };
+    return true;
   }
 }

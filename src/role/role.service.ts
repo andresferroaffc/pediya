@@ -1,13 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import {
-  paginate,
-  IPaginationOptions,
-  Pagination,
-} from 'nestjs-typeorm-paginate';
 import { Role } from '../shared/entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SelectOrderBy, validatExistException } from '../common/utils';
+import { validatExistException } from '../common/utils';
 import { menssageErrorResponse } from '../messages';
 
 @Injectable()
@@ -34,25 +29,7 @@ export class RoleService {
         console.log(error);
         throw new BadRequestException(menssageErrorResponse('rol').getOneError);
       });
-    validatExistException(data, 'rol', 'validatExistOne');
+    validatExistException(data, 'rol', 'ValidateNoexist');
     return data;
-  }
-
-  // Consultar por paginación
-  async paginate(
-    sort: string,
-    order: string | number,
-    options: IPaginationOptions,
-  ): Promise<Pagination<Role>> {
-    sort = !sort ? 'id' : sort;
-    order = !order ? 'ASC' : order;
-    const orderBy = SelectOrderBy(order);
-    const paginateData = this.roleRepo.createQueryBuilder('role');
-    paginateData.orderBy(`role.${sort}`, orderBy[0]);
-    paginateData.getMany().catch(async (error) => {
-      console.log(error);
-      throw new BadRequestException(menssageErrorResponse('roles').getError);
-    });
-    return paginate<Role>(paginateData, options);
   }
 }
