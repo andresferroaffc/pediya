@@ -15,16 +15,16 @@ async function bootstrap() {
   );
 
   const configSwagger = new DocumentBuilder()
-    .setTitle('PediYa API')
+    .setTitle('Pedi Ya API')
     .addBearerAuth()
-    .setDescription('PediYa API')
+    .setDescription('Pedi Ya API')
     .setVersion('1.0')
     .addTag('PediYa')
     .build();
 
   const document = SwaggerModule.createDocument(app, configSwagger);
 
-  SwaggerModule.setup('PediYa API', app, document);
+  SwaggerModule.setup('PediYaAPI', app, document);
 
   app.enableCors();
 
