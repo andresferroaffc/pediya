@@ -23,7 +23,7 @@ export class RolesGuard implements CanActivate {
     }
     const { user } = context.switchToHttp().getRequest();
     const roleValide = requiredRoles.some((role) => user.role === role);
-    if (roleValide === false) throw new NotFoundException('no tienes permisos');
+    if (roleValide === false) throw new NotFoundException('No tienes permisos');
     return roleValide;
   }
 }

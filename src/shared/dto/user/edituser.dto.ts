@@ -1,6 +1,6 @@
 import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { Userdto } from './user.dto';
+import { UserDto } from './user.dto';
 
 export class EditUserDto extends PartialType(
-  OmitType(Userdto, ['password', 'role'] as const),
+  OmitType(UserDto, ['password', 'role'] as const),
 ) {}

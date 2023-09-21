@@ -12,7 +12,7 @@ export class User {
   @Column({ type: 'varchar' })
   typeDocument: string;
   @Column({ type: 'bigint', unique: true })
-  document: number;
+  document: string;
   @Column({ type: 'varchar', unique: true })
   user: string;
   @Column({ type: 'varchar', select: false })
@@ -20,8 +20,8 @@ export class User {
   @Column({ type: 'varchar', unique: true })
   email: string;
   @Column({ type: 'bigint', unique: true })
-  phone: number;
-  @Column({ type: 'varchar', unique: true, nullable: true })
+  phone: string;
+  @Column({ type: 'varchar', unique: true, nullable: true, select:false })
   resetPasswordToken: string;
   @Column({ type: 'boolean', default: true })
   status: boolean;

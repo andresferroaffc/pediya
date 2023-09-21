@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { RoleEnum, TypeDocument } from 'src/common/enum';
+import { RoleEnum, TypeDocument } from '../../../common/enum';
 
-export class Userdto {
+export class UserDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -19,9 +19,9 @@ export class Userdto {
   typeDocument: TypeDocument;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  document: number;
+  document: string;
 
   @ApiProperty()
   @IsString()
@@ -39,9 +39,9 @@ export class Userdto {
   email: string;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  phone: number;
+  phone: string;
 
   @ApiProperty()
   @IsEnum(RoleEnum)

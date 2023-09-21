@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Userdto } from '../shared/dto/user';
+import { UserDto } from '../shared/dto/user';
 import * as bcrypt from 'bcrypt';
 
 // crear usuario administrador por defecto

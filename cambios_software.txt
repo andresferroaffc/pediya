@@ -1,0 +1,3 @@
+validar correctamente el paginador, cuando page es = 0 y el sort cuando no existe en la entidad
+hacer el eliminar para usuarios y productos
+revisar or que no envia correos

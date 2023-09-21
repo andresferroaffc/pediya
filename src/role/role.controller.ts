@@ -12,7 +12,7 @@ import { RolesGuard } from '../auth/strategy/roles.guard';
 @ApiTags('Role')
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly serviceRole: RoleService) {}
 
   // Consultar todos los roles
   @Get('all')
@@ -20,7 +20,7 @@ export class RoleController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async getAll(): Promise<HttpResponse<Role[]>> {
-    const data = await this.roleService.findAll();
+    const data = await this.serviceRole.findAll();
     return { message: menssageSuccessResponse('roles').get, data };
   }
 
@@ -30,7 +30,7 @@ export class RoleController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async getOne(@Param('role') role: string): Promise<HttpResponse<Role>> {
-    const data = await this.roleService.findOne(role);
+    const data = await this.serviceRole.findOne(role);
     return { message: menssageSuccessResponse('rol').getOne, data };
   }
 }

@@ -5,14 +5,18 @@ import { SendemailService } from '../sendemail/sendemail.service';
 import { menssageErrorResponse } from '../messages';
 import { Repository } from 'typeorm';
 import { Role, User } from '../shared/entity';
-import { EditUserDto, Userdto } from '../shared/dto';
+import { EditUserDto, ResetPasswordDto, UserDto } from '../shared/dto';
 import {
   IPaginationOptions,
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
-import { templateCreateUser } from '../sendemail/templates';
+import {
+  templateChagePasswordUser,
+  templateCreateUser,
+} from '../sendemail/templates';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -25,7 +29,7 @@ export class UserService {
   ) {}
 
   // Crear usuario
-  async create(dto: Userdto): Promise<User> {
+  async create(dto: UserDto): Promise<User> {
     const attributeExist = await this.uniqueAttribute(dto);
     if (attributeExist)
       throw new BadRequestException({
@@ -49,6 +53,7 @@ export class UserService {
           },
         );
         delete data.password;
+        delete data.resetPasswordToken;
         return data;
       })
       .catch(async (error) => {
@@ -69,22 +74,22 @@ export class UserService {
   }
 
   // Consultar un usuario
-  async findOne(id: number): Promise<User> {
-    const data = await this.userRepo
-      .findOneBy({ id: id })
-      .catch(async (error) => {
-        console.log(error);
-        throw new BadRequestException(
-          menssageErrorResponse('usuario').getOneError,
-        );
-      });
+  async findOne(id: number, andWhere?: object): Promise<User> {
+    let where = { id: id };
+    if (andWhere) where = { ...where, ...andWhere };
+    const data = await this.userRepo.findOneBy(where).catch(async (error) => {
+      console.log(error);
+      throw new BadRequestException(
+        menssageErrorResponse('usuario').getOneError,
+      );
+    });
     validatExistException(data, 'usuario', 'ValidateNoexist');
     return data;
   }
 
   // Modificar usuario
   async update(id: number, dto: EditUserDto): Promise<User> {
-    const data = await this.findOne(id);
+    const data = await this.findOne(id, { status: true });
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
@@ -197,5 +202,84 @@ export class UserService {
           }
       }
     }
+  }
+
+  // Consultar mi perfil
+  async findProfile(id: number): Promise<User> {
+    return this.findOne(id);
+  }
+
+  // Cambio de contraseña
+  async changePassword(dto: ResetPasswordDto, id: number, code?: string) {
+    const data = await this.userRepo
+      .findOne({
+        where: { id: id, status: true },
+        select: ['id', 'email', 'password'],
+      })
+      .catch(async (Error) => {
+        throw new BadRequestException(
+          'Error valida el tipo de dato',
+          Error.detail,
+        );
+      });
+    validatExistException(data, 'usuario', 'ValidateNoexist');
+    const isValid =
+      code && code === 'RESET'
+        ? dto.oldpassword
+        : bcrypt.compareSync(dto.oldpassword, data.password);
+
+    if (isValid) {
+      const newPasswordBcrypt = bcrypt.hashSync(dto.newpassword, 10);
+      data.password = newPasswordBcrypt;
+      return await this.userRepo
+        .save(data)
+        .then((value) => {
+          const html = templateChagePasswordUser(value.user, dto.newpassword);
+          this.ServiceSemail.sendemail(
+            'Cambio de contraseña',
+            value.email,
+            html,
+          ).catch((error) => {
+            console.log(error);
+          });
+          return {
+            message:
+              'Se enviaran las nuevas credenciales al siguiente correo ' +
+              value.email,
+          };
+        })
+        .catch(async (error) => {
+          console.log(error);
+          throw new BadRequestException(
+            menssageErrorResponse('usuario').postError,
+          );
+        });
+    } else {
+      throw new BadRequestException({
+        message: 'La contraseña antigua es incorrecta',
+        valid: false,
+      });
+    }
+  }
+
+  // asignar Contraseña random solo por el administrador
+  async resetPassword(id: number) {
+    const data = await this.userRepo
+      .findOne({
+        where: { id: id, status: true },
+        select: ['id', 'email', 'password'],
+      })
+      .catch(async (Error) => {
+        throw new BadRequestException(
+          'Error valida el tipo de dato',
+          Error.detail,
+        );
+      });
+    validatExistException(data, 'usuario', 'ValidateNoexist');
+    const newPassword = uuidv4();
+    const dto = new ResetPasswordDto();
+    dto.oldpassword = data.password;
+    dto.newpassword = newPassword;
+    return await this.changePassword(dto, id, 'RESET');
   }
 }

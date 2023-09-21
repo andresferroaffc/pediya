@@ -11,11 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { EditUserDto, HttpResponse, Userdto } from '../shared/dto';
+import {
+  EditUserDto,
+  HttpResponse,
+  ResetPasswordDto,
+  UserDto,
+} from '../shared/dto';
 import { UserService } from './user.service';
 import { menssageSuccessResponse } from '../messages';
 import { User } from '../shared/entity';
-import { Roles } from '../common/decorator';
+import { Roles, user } from '../common/decorator';
 import { RoleEnum } from '../common/enum';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
 import { RolesGuard } from '../auth/strategy/roles.guard';
@@ -23,13 +28,13 @@ import { RolesGuard } from '../auth/strategy/roles.guard';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly serviceUser: UserService) {}
 
   // Crear usuario
   @Post('create-user')
   @ApiBearerAuth()
-  async create(@Body() dto: Userdto): Promise<HttpResponse<User>> {
-    const data = await this.userService.create(dto);
+  async create(@Body() dto: UserDto): Promise<HttpResponse<User>> {
+    const data = await this.serviceUser.create(dto);
     return { message: menssageSuccessResponse('usuario').post, data };
   }
 
@@ -41,7 +46,7 @@ export class UserController {
   async findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<HttpResponse<User>> {
-    const data = await this.userService.findOne(id);
+    const data = await this.serviceUser.findOne(id);
     return { message: menssageSuccessResponse('usuario').getOne, data };
   }
 
@@ -50,21 +55,21 @@ export class UserController {
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  async findAll() {
-    const data = await this.userService.findAll();
+  async findAll(): Promise<HttpResponse<User[]>> {
+    const data = await this.serviceUser.findAll();
     return { message: menssageSuccessResponse('usuarios').get, data };
   }
 
   // Modificar usuario
-  @Patch('update-user/:id')
-  @Roles(RoleEnum.Administrador)
+  @Patch('update-user')
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async updateUser(
-    @Param('id') id: number,
+    @user('id') id: number,
     @Body() dto: EditUserDto,
   ): Promise<HttpResponse<User>> {
-    const data = await this.userService.update(id, dto);
+    const data = await this.serviceUser.update(id, dto);
     return { message: menssageSuccessResponse('usuario').put, data };
   }
 
@@ -80,10 +85,51 @@ export class UserController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
     limit = limit > 100 ? 100 : limit;
-    const data = await this.userService.paginate(sort, order, {
+    const data = await this.serviceUser.paginate(sort, order, {
       page,
       limit,
     });
     return { message: menssageSuccessResponse('usuarios').get, data };
+  }
+
+  // Consultar perfil
+  @Get('profile')
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findPorfile(@user('id') id: number): Promise<HttpResponse<User>> {
+    const data = await this.serviceUser.findProfile(id);
+    return { message: menssageSuccessResponse('usuario').getOne, data };
+  }
+
+  // Cambiar contraseña
+  @Patch('change-password')
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async changePassword(
+    @Body() dto: ResetPasswordDto,
+    @user('id') id: number,
+  ): Promise<HttpResponse<Object>> {
+    const data = await this.serviceUser.changePassword(dto, id);
+    return {
+      message: menssageSuccessResponse('contraseña').put,
+      data,
+    };
+  }
+
+  // Resetear contraseña
+  @Patch('reset-password/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<Object>> {
+    const data = await this.serviceUser.resetPassword(id);
+    return {
+      message: menssageSuccessResponse('contraseña').put,
+      data,
+    };
   }
 }
