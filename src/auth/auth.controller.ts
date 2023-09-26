@@ -3,13 +3,13 @@ import { AuthService } from './auth.service';
 import { AuthLoginDto, RestPassworDto } from '../shared/dto/auth';
 import { ApiTags } from '@nestjs/swagger';
 import { menssageSuccessResponse } from '../messages';
-import { HttpResponse, SuccessAuth} from '../shared/dto';
+import { HttpResponse, SuccessAuth } from '../shared/dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('Login')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   // Logueo en la plataforma
   @Post('login')
