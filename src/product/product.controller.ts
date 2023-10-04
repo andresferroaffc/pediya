@@ -37,7 +37,7 @@ export class ProductController {
 
   // Consultar un producto
   @Get('find/:id')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findOne(
@@ -49,7 +49,7 @@ export class ProductController {
 
   // Consultar todos los productos
   @Get('all')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<Product[]>> {
@@ -72,7 +72,7 @@ export class ProductController {
 
   // Consultar con paginacion
   @Get('paginate')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async paginate(

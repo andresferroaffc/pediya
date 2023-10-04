@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Group } from '../group';
 
 @Entity('products')
 export class Product {
@@ -8,16 +9,16 @@ export class Product {
   code: string;
   @Column({ nullable: false, unique: true })
   name: string;
-  @Column({ nullable: false })
-  inventory_group: number;
   @Column({ default: true })
   status: boolean;
   @Column({ default: 0 })
   stock: number;
   @Column({ default: 0 })
   min_tock: number;
-  @Column({ type: 'decimal', precision: 10, scale:2 })
+  @Column({ type: 'decimal', precision: 15, scale: 2 })
   price: number;
   @Column({ nullable: false })
   inventoried: boolean;
+  @ManyToOne(() => Group, (group) => group.product)
+  inventory_group: Group;
 }

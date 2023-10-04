@@ -10,12 +10,14 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate';
 import { SelectOrderBy, validatExistException } from '../common/utils';
+import { GroupService } from '../group/group.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    private groupService: GroupService,
   ) {}
 
   // Crear producto
@@ -32,7 +34,9 @@ export class ProductService {
           'El valor del stock no puede ser menor al valor minimo del stock',
         valied: false,
       });
-    const newData = this.productRepo.create({ ...dto });
+
+    const group = await this.groupService.findOne(dto.inventory_group);
+    const newData = this.productRepo.create({ ...dto, inventory_group: group });
     return await this.productRepo.save(newData).catch(async (error) => {
       console.log(error);
       throw new BadRequestException(
@@ -43,12 +47,17 @@ export class ProductService {
 
   // Consultar todos los productos
   async findAll(): Promise<Product[]> {
-    const data = await this.productRepo.find().catch(async (error) => {
-      console.log(error);
-      throw new BadRequestException(
-        menssageErrorResponse('productos').getError,
-      );
-    });
+    const data = await this.productRepo
+      .createQueryBuilder('product')
+      .innerJoinAndSelect('product.inventory_group', 'group')
+      .orderBy('product.name', 'ASC')
+      .getMany()
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('productos').getError,
+        );
+      });
     return data;
   }
 
@@ -57,7 +66,10 @@ export class ProductService {
     let where = { id: id };
     if (andWhere) where = { ...where, ...andWhere };
     const data = await this.productRepo
-      .findOneBy(where)
+      .createQueryBuilder('product')
+      .innerJoinAndSelect('product.inventory_group', 'group')
+      .where(where)
+      .getOne()
       .catch(async (error) => {
         console.log(error);
         throw new BadRequestException(
@@ -71,14 +83,20 @@ export class ProductService {
   // Modificar producto
   async update(id: number, dto: EditProductDto): Promise<Product> {
     const data = await this.findOne(id, { status: true });
+    let group = data.inventory_group;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
         message: 'El atributo ya está en uso',
         attributeExist,
       });
+    if (dto.inventory_group) {
+      const groupExist = await this.groupService.findOne(dto.inventory_group);
+      group = groupExist;
+    }
+
     return await this.productRepo
-      .save({ ...data, ...dto })
+      .save({ ...data, ...dto, inventory_group: group })
       .catch(async (error) => {
         console.log(error);
         throw new BadRequestException(
@@ -97,6 +115,7 @@ export class ProductService {
     order = !order ? 'ASC' : order;
     const orderBy = SelectOrderBy(order);
     const paginateData = await this.productRepo.createQueryBuilder('product');
+    paginateData.innerJoinAndSelect('product.inventory_group', 'group');
     paginateData.orderBy(`product.${sort}`, orderBy[0]);
     paginateData.getMany().catch(async (error) => {
       console.log(error);

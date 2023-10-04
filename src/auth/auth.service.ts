@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,8 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: SendemailService,
     @InjectRepository(User) private usersRepo: Repository<User>,
-    @InjectRepository(Role) private rolesRepo: Repository<Role>,
-  ) { }
+  ) {}
 
   // Metodo de validacion de credenciales y logueo
   async login(user: AuthLoginDto): Promise<Record<string, any>> {
