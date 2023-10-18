@@ -9,6 +9,8 @@ export class Group {
   name: string;
   @Column({ nullable: false})
   description: string;
+  @Column({ nullable: false, })
+  status: boolean;
   @OneToMany(() => Product, (product) => product.inventory_group)
   product: Product[];
 }
