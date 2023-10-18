@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -49,7 +50,7 @@ export class GroupController {
 
   // Consultar todos los grupos
   @Get('all')
-  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<Group[]>> {
@@ -58,11 +59,11 @@ export class GroupController {
   }
 
   // Modificar grupo
-  @Patch('update-Group/:id')
+  @Patch('update-group/:id')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  async updateproduct(
+  async updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: EditGroupDto,
   ): Promise<HttpResponse<Group>> {
@@ -72,7 +73,7 @@ export class GroupController {
 
   // Consultar con paginacion
   @Get('paginate')
-  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async paginate(
@@ -87,5 +88,17 @@ export class GroupController {
       limit,
     });
     return { message: menssageSuccessResponse('grupos').get, data };
+  }
+
+  // Eliminar grupo
+  @Delete('delete-group/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async deleteProduct(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<boolean>> {
+    const data = await this.groupProduct.delete(id);
+    return { message: menssageSuccessResponse('grupo').delete, data };
   }
 }

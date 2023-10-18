@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { menssageErrorResponse } from '../../messages';
 
 // Validar si el objeto existe para arrojar excepción
@@ -16,7 +16,7 @@ export function validatExistException(
     case 'ValidateNoexist':
       // code block
       if (!object || object.length === 0 || object === false)
-        throw new BadRequestException(menssageErrorResponse(message).noExist);
+        throw new NotFoundException(menssageErrorResponse(message).noExist);
       break;
     case 'validatExistOne':
       if (object && object !== null)

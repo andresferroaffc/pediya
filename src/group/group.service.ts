@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
@@ -121,5 +125,17 @@ export class GroupService {
           }
       }
     }
+  }
+
+  // Eliminar grupo
+  async delete(id: number): Promise<boolean> {
+    const data = await this.findOne(id);
+    await this.groupRepo.delete(data).catch(async (error) => {
+      console.log(error);
+      throw new UnprocessableEntityException(
+        menssageErrorResponse('grupo').deleteError,
+      );
+    });
+    return true;
   }
 }
