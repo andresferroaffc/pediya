@@ -7,10 +7,10 @@ export class Group {
   id: number;
   @Column({ nullable: false, unique: true })
   name: string;
-  @Column({ nullable: false})
+  @Column({ nullable: true})
   description: string;
   @Column({ nullable: false, })
-  status: boolean;
+  status: number;
   @OneToMany(() => Product, (product) => product.inventory_group)
   product: Product[];
 }
