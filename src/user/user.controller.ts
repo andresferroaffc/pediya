@@ -9,6 +9,7 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
@@ -131,5 +132,17 @@ export class UserController {
       message: menssageSuccessResponse('contraseña').put,
       data,
     };
+  }
+
+  // Eliminar usuario
+  @Delete('delete-user/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async deleteProduct(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<boolean>> {
+    const data = await this.serviceUser.delete(id);
+    return { message: menssageSuccessResponse('usuario').delete, data };
   }
 }

@@ -9,6 +9,7 @@ import {
   Patch,
   Query,
   DefaultValuePipe,
+  Delete,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Roles } from '../common/decorator';
@@ -88,4 +89,16 @@ export class ProductController {
     });
     return { message: menssageSuccessResponse('productos').get, data };
   }
+
+    // Eliminar producto
+    @Delete('delete-product/:id')
+    @Roles(RoleEnum.Administrador)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @ApiBearerAuth()
+    async deleteProduct(
+      @Param('id', ParseIntPipe) id: number,
+    ): Promise<HttpResponse<boolean>> {
+      const data = await this.serviceProduct.delete(id);
+      return { message: menssageSuccessResponse('producto').delete, data };
+    }
 }

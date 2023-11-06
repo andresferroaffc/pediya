@@ -6,34 +6,32 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Group } from '../group';
+import { User } from '../user';
 import { ProductReferral } from '../product-referral';
 
-@Entity('products')
-export class Product {
+@Entity('referrals')
+export class Referral {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ nullable: false, unique: true })
-  code: string;
+  consecutive: number;
   @Column({ nullable: false, unique: true })
-  name: string;
+  identificaction_tercero: string;
   @Column({ default: true })
-  status: boolean;
+  date_of_elaboration: boolean;
   @Column({ default: 0 })
-  stock: number;
+  quantity: number;
   @Column({ default: 0 })
-  min_tock: number;
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
-  price: number;
-  @Column({ nullable: false })
-  inventoried: boolean;
-  @ManyToOne(() => Group, (group) => group.product)
-  @JoinColumn({ name: 'inventory_group_id' })
-  inventory_group_id: Group;
+  unit_value: number;
+  @Column({ type: 'decimal', precision: 20, scale: 2 })
+  payment_method_value: number;
+  @ManyToOne(() => User, (user) => user.referral)
+  @JoinColumn({ name: 'seller_id' })
+  seller_id: User;
   @OneToMany(
     () => ProductReferral,
     (productReferral) => {
-      productReferral.product;
+      productReferral.referral;
     },
   )
   productReferral: ProductReferral[];

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SelectOrderBy, validatExistException } from '../common/utils';
 import { SendemailService } from '../sendemail/sendemail.service';
@@ -281,5 +285,17 @@ export class UserService {
     dto.oldpassword = data.password;
     dto.newpassword = newPassword;
     return await this.changePassword(dto, id, 'RESET');
+  }
+
+  // Eliminar usuario
+  async delete(id: number): Promise<boolean> {
+    const data = await this.findOne(id);
+    await this.userRepo.delete(data).catch(async (error) => {
+      console.log(error);
+      throw new UnprocessableEntityException(
+        menssageErrorResponse('usuario').deleteError,
+      );
+    });
+    return true;
   }
 }

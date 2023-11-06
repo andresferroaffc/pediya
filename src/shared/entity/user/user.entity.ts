@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Role } from '../role';
+import { Referral } from '../referral';
 
 @Entity('users')
 export class User {
@@ -20,11 +21,14 @@ export class User {
   @Column({ type: 'varchar', unique: true })
   email: string;
   @Column({ type: 'bigint', unique: true })
-  phone: string;
+  phone: number;
   @Column({ type: 'varchar', unique: true, nullable: true, select:false })
   resetPasswordToken: string;
   @Column({ type: 'boolean', default: true })
   status: boolean;
   @ManyToOne(() => Role, (role) => role.user)
+  @JoinColumn({ name: 'role_id' })
   role: Role;
+  @OneToMany(() => Referral, (referral) => referral.seller_id)
+  referral: Referral[];
 }

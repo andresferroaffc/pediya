@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../shared/entity';
 import { Repository } from 'typeorm';
@@ -36,7 +36,7 @@ export class ProductService {
       });
 
     const group = await this.groupService.findOne(dto.inventory_group);
-    const newData = this.productRepo.create({ ...dto, inventory_group: group });
+    const newData = this.productRepo.create({ ...dto, inventory_group_id: group });
     return await this.productRepo.save(newData).catch(async (error) => {
       console.log(error);
       throw new BadRequestException(
@@ -49,7 +49,7 @@ export class ProductService {
   async findAll(): Promise<Product[]> {
     const data = await this.productRepo
       .createQueryBuilder('product')
-      .innerJoinAndSelect('product.inventory_group', 'group')
+      .innerJoinAndSelect('product.inventory_group_id', 'group')
       .orderBy('product.name', 'ASC')
       .getMany()
       .catch(async (error) => {
@@ -67,7 +67,7 @@ export class ProductService {
     if (andWhere) where = { ...where, ...andWhere };
     const data = await this.productRepo
       .createQueryBuilder('product')
-      .innerJoinAndSelect('product.inventory_group', 'group')
+      .innerJoinAndSelect('product.inventory_group_id', 'group')
       .where(where)
       .getOne()
       .catch(async (error) => {
@@ -83,7 +83,7 @@ export class ProductService {
   // Modificar producto
   async update(id: number, dto: EditProductDto): Promise<Product> {
     const data = await this.findOne(id, { status: true });
-    let group = data.inventory_group;
+    let group = data.inventory_group_id;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
@@ -115,7 +115,7 @@ export class ProductService {
     order = !order ? 'ASC' : order;
     const orderBy = SelectOrderBy(order);
     const paginateData = await this.productRepo.createQueryBuilder('product');
-    paginateData.innerJoinAndSelect('product.inventory_group', 'group');
+    paginateData.innerJoinAndSelect('product.inventory_group_id', 'group');
     paginateData.orderBy(`product.${sort}`, orderBy[0]);
     paginateData.getMany().catch(async (error) => {
       console.log(error);
@@ -175,4 +175,16 @@ export class ProductService {
       }
     }
   }
+
+    // Eliminar producto
+    async delete(id: number): Promise<boolean> {
+      const data = await this.findOne(id);
+      await this.productRepo.delete(data).catch(async (error) => {
+        console.log(error);
+        throw new UnprocessableEntityException(
+          menssageErrorResponse('producto').deleteError,
+        );
+      });
+      return true;
+    }
 }

@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { ProductModule } from './product/product.module';
 import { GroupModule } from './group/group.module';
+import { ReferralModule } from './referral/referral.module';
+import { TypeDocumentModule } from './type-document/type-document.module';
 
 @Module({
   imports: [
@@ -28,7 +30,9 @@ import { GroupModule } from './group/group.module';
     AuthModule,
     RoleModule,
     ProductModule,
-    GroupModule
+    GroupModule,
+    ReferralModule,
+    TypeDocumentModule
   ],
   controllers: [AppController],
   providers: [AppService],

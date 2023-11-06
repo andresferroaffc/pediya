@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class GroupDto {
   @ApiProperty()
@@ -13,7 +13,7 @@ export class GroupDto {
   description: string;
 
   @ApiProperty()
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  status: number;
+  status: boolean;
 }

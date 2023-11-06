@@ -39,9 +39,9 @@ export class UserDto {
   email: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  phone: string;
+  phone: number;
 
   @ApiProperty()
   @IsEnum(RoleEnum)
