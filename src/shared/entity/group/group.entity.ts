@@ -5,11 +5,11 @@ import { Product } from '../product';
 export class Group {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false, unique: true, length: 80 })
   name: string;
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 150 })
   description: string;
-  @Column({ nullable: false })
+  @Column({ type: 'boolean', nullable: true })
   status: boolean;
   @OneToMany(() => Product, (product) => product.inventory_group_id)
   product: Product[];

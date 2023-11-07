@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { RoleEnum, TypeDocument } from '../../../common/enum';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, MaxLength } from 'class-validator';
+import { RoleEnum } from '../../../common/enum';
+import { TypePerson } from 'src/common/enum/type-person.enum';
 
 export class UserDto {
   @ApiProperty()
@@ -14,9 +15,9 @@ export class UserDto {
   surnames: string;
 
   @ApiProperty()
-  @IsEnum(TypeDocument)
+  @IsNumber()
   @IsNotEmpty()
-  typeDocument: TypeDocument;
+  typeDocument: number;
 
   @ApiProperty()
   @IsString()
@@ -39,12 +40,39 @@ export class UserDto {
   email: string;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  phone: number;
+  @MaxLength(10)
+  phone1: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(10)
+  phone2: string;
 
   @ApiProperty()
   @IsEnum(RoleEnum)
   @IsNotEmpty()
   role: RoleEnum;
+
+  @ApiProperty()
+  @IsEnum(TypePerson)
+  @IsNotEmpty()
+  typePerson: TypePerson;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  departament_code: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  city_code: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  address: string;
 }

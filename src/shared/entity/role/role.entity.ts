@@ -5,10 +5,10 @@ import { User } from '../user';
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ nullable: false, unique: true })
-  role: string;
-  @Column({ nullable: false })
-  detail: string;
+  @Column({ nullable: false, unique: true, length: 17 })
+  name: string;
+  @Column({ nullable: false, length: 20 })
+  description: string;
   @OneToMany(() => User, (user) => user.role)
   user: User[];
 }

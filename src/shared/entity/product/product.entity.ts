@@ -8,25 +8,28 @@ import {
 } from 'typeorm';
 import { Group } from '../group';
 import { ProductReferral } from '../product-referral';
+import { TypeProduct } from 'src/common/enum';
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ nullable: false, unique: true })
+  @Column({ type: 'varchar', nullable: false, unique: true, length: 45 })
   code: string;
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false, unique: true, length: 45 })
   name: string;
-  @Column({ default: true })
+  @Column({ type: 'boolean',default: true })
   status: boolean;
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   stock: number;
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   min_tock: number;
   @Column({ type: 'decimal', precision: 15, scale: 2 })
   price: number;
   @Column({ nullable: false })
   inventoried: boolean;
+  @Column({ type: 'enum', enum: TypeProduct })
+  type: TypeProduct;
   @ManyToOne(() => Group, (group) => group.product)
   @JoinColumn({ name: 'inventory_group_id' })
   inventory_group_id: Group;

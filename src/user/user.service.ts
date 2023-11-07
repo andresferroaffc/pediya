@@ -8,7 +8,7 @@ import { SelectOrderBy, validatExistException } from '../common/utils';
 import { SendemailService } from '../sendemail/sendemail.service';
 import { menssageErrorResponse } from '../messages';
 import { Repository } from 'typeorm';
-import { Role, User } from '../shared/entity';
+import { Role, TypeDocument, User } from '../shared/entity';
 import { EditUserDto, ResetPasswordDto, UserDto } from '../shared/dto';
 import {
   IPaginationOptions,
@@ -29,6 +29,8 @@ export class UserService {
     private userRepo: Repository<User>,
     @InjectRepository(Role)
     private roleRepo: Repository<Role>,
+    @InjectRepository(TypeDocument)
+    private typeDocumentRepo: Repository<TypeDocument>,
     private ServiceSemail: SendemailService,
   ) {}
 
@@ -43,10 +45,18 @@ export class UserService {
     const password = dto.password;
     dto.password = bcrypt.hashSync(dto.password, 10);
     const rolExis = await this.roleRepo.findOneBy({
-      role: dto.role,
+      name: dto.role,
     });
     validatExistException(rolExis, 'rol', 'ValidateNoexist');
-    const newData = this.userRepo.create({ ...dto, role: rolExis });
+    const typeDocExis = await this.typeDocumentRepo.findOneBy({
+      id: dto.typeDocument,
+    });
+    validatExistException(typeDocExis, 'tipo documento', 'ValidateNoexist');
+    const newData = this.userRepo.create({
+      ...dto,
+      role: rolExis,
+      type_document_id: typeDocExis,
+    });
     return await this.userRepo
       .save(newData)
       .then(async (data) => {
@@ -57,7 +67,7 @@ export class UserService {
           },
         );
         delete data.password;
-        delete data.resetPasswordToken;
+        delete data.reset_password_token;
         return data;
       })
       .catch(async (error) => {
@@ -70,10 +80,17 @@ export class UserService {
 
   // Consultar todos los usuarios
   async findAll(): Promise<User[]> {
-    const data = await this.userRepo.find().catch(async (error) => {
-      console.log(error);
-      throw new BadRequestException(menssageErrorResponse('usuarios').getError);
-    });
+    const data = await this.userRepo
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.role', 'role')
+      .innerJoinAndSelect('user.type_document_id', 'type_document')
+      .getMany()
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('usuarios').getError,
+        );
+      });
     return data;
   }
 
@@ -81,12 +98,18 @@ export class UserService {
   async findOne(id: number, andWhere?: object): Promise<User> {
     let where = { id: id };
     if (andWhere) where = { ...where, ...andWhere };
-    const data = await this.userRepo.findOneBy(where).catch(async (error) => {
-      console.log(error);
-      throw new BadRequestException(
-        menssageErrorResponse('usuario').getOneError,
-      );
-    });
+    const data = await this.userRepo
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.role', 'role')
+      .innerJoinAndSelect('user.type_document_id', 'type_document')
+      .where(where)
+      .getOne()
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('usuario').getOneError,
+        );
+      });
     validatExistException(data, 'usuario', 'ValidateNoexist');
     return data;
   }
@@ -120,6 +143,8 @@ export class UserService {
     order = !order ? 'ASC' : order;
     const orderBy = SelectOrderBy(order);
     const paginateData = await this.userRepo.createQueryBuilder('user');
+    paginateData.innerJoinAndSelect('user.role', 'role');
+    paginateData.innerJoinAndSelect('user.type_document_id', 'type_document');
     paginateData.orderBy(`user.${sort}`, orderBy[0]);
     paginateData.getMany().catch(async (error) => {
       console.log(error);
@@ -132,31 +157,37 @@ export class UserService {
   async uniqueAttribute(data: any) {
     let Exist;
     for (const key in data) {
-      const { user, email, phone, document } = data;
+      const { user, email, phone1, phone2, document } = data;
       switch (key) {
         case 'user':
           Exist = await this.userRepo.findOneBy({
             user: user,
           });
-          if (Exist) return { valid: false, key: 'user' };
+          if (Exist) return { valid: false, key: 'usuario' };
           break;
         case 'email':
           Exist = await this.userRepo.findOneBy({
             email: email,
           });
-          if (Exist) return { valid: false, key: 'email' };
+          if (Exist) return { valid: false, key: 'correo' };
           break;
-        case 'phone':
+        case 'phone1':
           Exist = await this.userRepo.findOneBy({
-            phone: phone,
+            phone1: phone1,
           });
-          if (Exist) return { valid: false, key: 'phone' };
+          if (Exist) return { valid: false, key: 'telefono 1' };
+          break;
+        case 'phone2':
+          Exist = await this.userRepo.findOneBy({
+            phone2: phone2,
+          });
+          if (Exist) return { valid: false, key: 'telefono 2' };
           break;
         case 'document':
           Exist = await this.userRepo.findOneBy({
             document: document,
           });
-          if (Exist) return { valid: false, key: 'document' };
+          if (Exist) return { valid: false, key: 'documento' };
           break;
       }
     }
@@ -166,7 +197,7 @@ export class UserService {
   async uniqueAttributeUpdate(data: any, consult: User) {
     let Exist;
     for (const key in data) {
-      const { user, email, phone, document } = data;
+      const { user, email, phone1, phone2, document } = data;
       switch (key) {
         case 'user':
           if (user !== consult.user) {
@@ -174,7 +205,7 @@ export class UserService {
               user: user,
             });
 
-            if (Exist) return { valid: false, key: 'user' };
+            if (Exist) return { valid: false, key: 'usuario' };
             break;
           }
 
@@ -183,16 +214,24 @@ export class UserService {
             Exist = await this.userRepo.findOneBy({
               email: email,
             });
-            if (Exist) return { valid: false, key: 'email' };
+            if (Exist) return { valid: false, key: 'correo' };
             break;
           }
 
-        case 'phone':
-          if (phone !== consult.phone) {
+        case 'phone1':
+          if (phone1 !== consult.phone1) {
             Exist = await this.userRepo.findOneBy({
-              phone: phone,
+              phone1: phone1,
             });
-            if (Exist) return { valid: false, key: 'phone' };
+            if (Exist) return { valid: false, key: 'telefono 1' };
+            break;
+          }
+        case 'phone2':
+          if (phone2 !== consult.phone2) {
+            Exist = await this.userRepo.findOneBy({
+              phone2: phone2,
+            });
+            if (Exist) return { valid: false, key: 'telefono 2' };
             break;
           }
 
@@ -201,7 +240,7 @@ export class UserService {
             Exist = await this.userRepo.findOneBy({
               document: document,
             });
-            if (Exist) return { valid: false, key: 'document' };
+            if (Exist) return { valid: false, key: 'documento' };
             break;
           }
       }

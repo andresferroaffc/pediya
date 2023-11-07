@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { TypeProduct } from 'src/common/enum';
 
 export class ProductDto {
   @ApiProperty()
@@ -36,4 +37,9 @@ export class ProductDto {
   @IsBoolean()
   @IsNotEmpty()
   inventoried: boolean;
+
+  @ApiProperty()
+  @IsEnum(TypeProduct)
+  @IsNotEmpty()
+  typeProduct: TypeProduct;
 }

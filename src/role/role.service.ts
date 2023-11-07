@@ -24,7 +24,7 @@ export class RoleService {
   // Consultar un rol
   async findOne(role: string): Promise<Role> {
     const data = await this.roleRepo
-      .findOneBy({ role: role })
+      .findOneBy({ name: role })
       .catch(async (error) => {
         console.log(error);
         throw new BadRequestException(menssageErrorResponse('rol').getOneError);

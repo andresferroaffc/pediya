@@ -63,7 +63,7 @@ export class AuthService {
               email: userDetails.email,
               id: userDetails.id,
               user: userDetails.user,
-              role: userDetails.role.role,
+              role: userDetails.role.name,
             },
             { expiresIn: process.env.JWT_EXPIRES_IN },
           ),
@@ -84,7 +84,7 @@ export class AuthService {
     validatExistException(user, 'email', 'ValidateNoexist');
     const linkReset = uuidv4();
     await this.usersRepo
-      .update({ id: user.id }, { resetPasswordToken: linkReset })
+      .update({ id: user.id }, { reset_password_token: linkReset })
       .then(() => {
         const html = templateResetpass(linkReset);
         this.emailService
@@ -102,7 +102,7 @@ export class AuthService {
   // Cambiar contraseña
   async newpassword(token: uuidv4, dto: AuthLoginDto) {
     const user = await this.usersRepo.findOneBy({
-      resetPasswordToken: token,
+      reset_password_token: token,
       user: dto.user,
       status: true,
     });
@@ -113,7 +113,7 @@ export class AuthService {
     await this.usersRepo
       .update(
         { id: user.id },
-        { resetPasswordToken: null, password: newPassword },
+        { reset_password_token: null, password: newPassword },
       )
       .catch(async (Error) => {
         throw new BadRequestException('Error', Error.detail);
