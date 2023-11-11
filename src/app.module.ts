@@ -11,6 +11,8 @@ import { ProductModule } from './product/product.module';
 import { GroupModule } from './group/group.module';
 import { ReferralModule } from './referral/referral.module';
 import { TypeDocumentModule } from './type-document/type-document.module';
+import { ZoneModule } from './zone/zone.module';
+import { CommissionModule } from './commission/commission.module';
 
 @Module({
   imports: [
@@ -32,7 +34,9 @@ import { TypeDocumentModule } from './type-document/type-document.module';
     ProductModule,
     GroupModule,
     ReferralModule,
-    TypeDocumentModule
+    TypeDocumentModule,
+    ZoneModule,
+    CommissionModule
   ],
   controllers: [AppController],
   providers: [AppService],

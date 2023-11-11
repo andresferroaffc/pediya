@@ -16,7 +16,7 @@ export class ProductDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  inventory_group: number;
+  inventory_group_id: number;
 
   @ApiProperty()
   @IsNumber()

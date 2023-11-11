@@ -103,7 +103,7 @@ export class GroupService {
           Exist = await this.groupRepo.findOneBy({
             name: name,
           });
-          if (Exist) return { valid: false, key: 'name' };
+          if (Exist) return { valid: false, key: 'nombre' };
           break;
       }
     }
@@ -120,7 +120,7 @@ export class GroupService {
             Exist = await this.groupRepo.findOneBy({
               name: name,
             });
-            if (Exist) return { valid: false, key: 'name' };
+            if (Exist) return { valid: false, key: 'nombre' };
             break;
           }
       }

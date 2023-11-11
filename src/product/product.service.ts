@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../shared/entity';
 import { Repository } from 'typeorm';
@@ -35,8 +39,11 @@ export class ProductService {
         valied: false,
       });
 
-    const group = await this.groupService.findOne(dto.inventory_group);
-    const newData = this.productRepo.create({ ...dto, inventory_group_id: group });
+    const group = await this.groupService.findOne(dto.inventory_group_id);
+    const newData = this.productRepo.create({
+      ...dto,
+      inventory_group_id: group,
+    });
     return await this.productRepo.save(newData).catch(async (error) => {
       console.log(error);
       throw new BadRequestException(
@@ -90,13 +97,13 @@ export class ProductService {
         message: 'El atributo ya está en uso',
         attributeExist,
       });
-    if (dto.inventory_group) {
-      const groupExist = await this.groupService.findOne(dto.inventory_group);
+    if (dto.inventory_group_id) {
+      const groupExist = await this.groupService.findOne(dto.inventory_group_id);
       group = groupExist;
     }
-
+    const newData = { ...data, ...dto, inventory_group_id: group };
     return await this.productRepo
-      .save({ ...data, ...dto, inventory_group: group })
+      .save(newData)
       .catch(async (error) => {
         console.log(error);
         throw new BadRequestException(
@@ -136,13 +143,13 @@ export class ProductService {
           Exist = await this.productRepo.findOneBy({
             code: code,
           });
-          if (Exist) return { valid: false, key: 'code' };
+          if (Exist) return { valid: false, key: 'codigo' };
           break;
         case 'name':
           Exist = await this.productRepo.findOneBy({
             name: name,
           });
-          if (Exist) return { valid: false, key: 'name' };
+          if (Exist) return { valid: false, key: 'nombre' };
           break;
       }
     }
@@ -160,7 +167,7 @@ export class ProductService {
               code: code,
             });
 
-            if (Exist) return { valid: false, key: 'code' };
+            if (Exist) return { valid: false, key: 'codigo' };
             break;
           }
 
@@ -169,22 +176,22 @@ export class ProductService {
             Exist = await this.productRepo.findOneBy({
               name: name,
             });
-            if (Exist) return { valid: false, key: 'name' };
+            if (Exist) return { valid: false, key: 'nombre' };
             break;
           }
       }
     }
   }
 
-    // Eliminar producto
-    async delete(id: number): Promise<boolean> {
-      const data = await this.findOne(id);
-      await this.productRepo.delete(data).catch(async (error) => {
-        console.log(error);
-        throw new UnprocessableEntityException(
-          menssageErrorResponse('producto').deleteError,
-        );
-      });
-      return true;
-    }
+  // Eliminar producto
+  async delete(id: number): Promise<boolean> {
+    const data = await this.findOne(id);
+    await this.productRepo.delete(data).catch(async (error) => {
+      console.log(error);
+      throw new UnprocessableEntityException(
+        menssageErrorResponse('producto').deleteError,
+      );
+    });
+    return true;
+  }
 }
