@@ -1,5 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { TypeCommission } from '../../../common/enum';
+import { Zone } from '../zone';
+import { Product } from '../product';
 
 @Entity('commissions')
 export class Commission {
@@ -17,4 +19,8 @@ export class Commission {
   is_general: boolean;
   @Column({ type: 'enum', enum: TypeCommission })
   type: TypeCommission;
+  @OneToMany(() => Zone, (zone) => zone.commission_id)
+  zone: Zone[];
+  @OneToMany(() => Product, (product) => product.commission_id)
+  product: Product[];
 }

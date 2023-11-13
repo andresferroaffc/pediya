@@ -5,3 +5,5 @@ export * from './product';
 export * from './referral';
 export * from './TypeDocument';
 export * from './commission';
+export * from './discount';
+export * from './zone';

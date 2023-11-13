@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TypeProduct } from 'src/common/enum';
 
 export class ProductDto {
@@ -20,12 +27,12 @@ export class ProductDto {
 
   @ApiProperty()
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   stock: number;
 
   @ApiProperty()
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   min_tock: number;
 
   @ApiProperty()
@@ -39,7 +46,22 @@ export class ProductDto {
   inventoried: boolean;
 
   @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  status: boolean;
+
+  @ApiProperty()
   @IsEnum(TypeProduct)
   @IsNotEmpty()
   typeProduct: TypeProduct;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  discount: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  commission: number;
 }

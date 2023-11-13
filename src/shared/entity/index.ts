@@ -6,3 +6,4 @@ export * from './referral';
 export * from './type_document';
 export * from './zone';
 export * from './commission';
+export * from './discount';

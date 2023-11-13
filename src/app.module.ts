@@ -13,6 +13,7 @@ import { ReferralModule } from './referral/referral.module';
 import { TypeDocumentModule } from './type-document/type-document.module';
 import { ZoneModule } from './zone/zone.module';
 import { CommissionModule } from './commission/commission.module';
+import { DiscountModule } from './discount/discount.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { CommissionModule } from './commission/commission.module';
     ReferralModule,
     TypeDocumentModule,
     ZoneModule,
-    CommissionModule
+    CommissionModule,
+    DiscountModule
   ],
   controllers: [AppController],
   providers: [AppService],

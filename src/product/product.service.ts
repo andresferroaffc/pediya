@@ -4,7 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from '../shared/entity';
+import { Commission, Discount, Product } from '../shared/entity';
 import { Repository } from 'typeorm';
 import { EditProductDto, ProductDto } from '../shared/dto';
 import { menssageErrorResponse } from '../messages';
@@ -21,28 +21,52 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    @InjectRepository(Discount)
+    private discountRepo: Repository<Discount>,
+    @InjectRepository(Commission)
+    private commissionRepo: Repository<Commission>,
     private groupService: GroupService,
   ) {}
 
   // Crear producto
   async create(dto: ProductDto): Promise<Product> {
+    let commission = null;
+    let discount = null;
     const attributeExist = await this.uniqueAttribute(dto);
     if (attributeExist)
       throw new BadRequestException({
         message: 'El atributo ya está en uso',
         attributeExist,
       });
-    if (dto.stock < dto.min_tock)
+    if (dto.stock && dto.min_tock && dto.stock < dto.min_tock)
       throw new BadRequestException({
         message:
           'El valor del stock no puede ser menor al valor minimo del stock',
         valied: false,
       });
+    if (dto.commission) {
+      const comissionExis = await this.commissionRepo.findOneBy({
+        id: dto.commission,
+      });
+      validatExistException(comissionExis, 'comision', 'ValidateNoexist');
+      commission = comissionExis;
+    }
+
+    if (dto.discount) {
+      const discountExis = await this.discountRepo.findOneBy({
+        id: dto.discount,
+      });
+      validatExistException(discountExis, 'descuento', 'ValidateNoexist');
+      discount = discountExis;
+    }
 
     const group = await this.groupService.findOne(dto.inventory_group_id);
+    validatExistException(group, 'grupo inventario', 'ValidateNoexist');
     const newData = this.productRepo.create({
       ...dto,
       inventory_group_id: group,
+      commission_id: commission,
+      discount_id: discount,
     });
     return await this.productRepo.save(newData).catch(async (error) => {
       console.log(error);
@@ -57,6 +81,8 @@ export class ProductService {
     const data = await this.productRepo
       .createQueryBuilder('product')
       .innerJoinAndSelect('product.inventory_group_id', 'group')
+      .leftJoinAndSelect('product.commission_id', 'commission')
+      .leftJoinAndSelect('product.discount_id', 'discount')
       .orderBy('product.name', 'ASC')
       .getMany()
       .catch(async (error) => {
@@ -75,6 +101,8 @@ export class ProductService {
     const data = await this.productRepo
       .createQueryBuilder('product')
       .innerJoinAndSelect('product.inventory_group_id', 'group')
+      .leftJoinAndSelect('product.commission_id', 'commission')
+      .leftJoinAndSelect('product.discount_id', 'discount')
       .where(where)
       .getOne()
       .catch(async (error) => {
@@ -89,7 +117,7 @@ export class ProductService {
 
   // Modificar producto
   async update(id: number, dto: EditProductDto): Promise<Product> {
-    const data = await this.findOne(id, { status: true });
+    const data = await this.findOne(id);
     let group = data.inventory_group_id;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
@@ -97,19 +125,47 @@ export class ProductService {
         message: 'El atributo ya está en uso',
         attributeExist,
       });
+
+    if (dto.stock && dto.min_tock && dto.stock < dto.min_tock)
+      throw new BadRequestException({
+        message:
+          'El valor del stock no puede ser menor al valor minimo del stock',
+        valied: false,
+      });
+
     if (dto.inventory_group_id) {
-      const groupExist = await this.groupService.findOne(dto.inventory_group_id);
+      const groupExist = await this.groupService.findOne(
+        dto.inventory_group_id,
+      );
       group = groupExist;
     }
-    const newData = { ...data, ...dto, inventory_group_id: group };
-    return await this.productRepo
-      .save(newData)
-      .catch(async (error) => {
-        console.log(error);
-        throw new BadRequestException(
-          menssageErrorResponse('producto').putError,
-        );
+
+    if (dto.commission === null) {
+      data.commission_id = null;
+    } else if (dto.commission) {
+      const comissionExis = await this.commissionRepo.findOneBy({
+        id: dto.commission,
       });
+      validatExistException(comissionExis, 'comision', 'ValidateNoexist');
+      data.commission_id = comissionExis;
+    }
+
+    if (dto.discount === null) {
+      data.discount_id = null;
+    } else if (dto.discount) {
+      const discountExis = await this.discountRepo.findOneBy({
+        id: dto.discount,
+      });
+      validatExistException(discountExis, 'descuento', 'ValidateNoexist');
+      data.discount_id = discountExis;
+    }
+    const newData = { ...data, ...dto, inventory_group_id: group };
+    delete newData.commission;
+    delete newData.discount;
+    return await this.productRepo.save(newData).catch(async (error) => {
+      console.log(error);
+      throw new BadRequestException(menssageErrorResponse('producto').putError);
+    });
   }
 
   // Consultar por paginación
@@ -122,6 +178,8 @@ export class ProductService {
     order = !order ? 'ASC' : order;
     const orderBy = SelectOrderBy(order);
     const paginateData = await this.productRepo.createQueryBuilder('product');
+    paginateData.leftJoinAndSelect('product.commission_id', 'commission');
+    paginateData.leftJoinAndSelect('product.discount_id', 'discount');
     paginateData.innerJoinAndSelect('product.inventory_group_id', 'group');
     paginateData.orderBy(`product.${sort}`, orderBy[0]);
     paginateData.getMany().catch(async (error) => {

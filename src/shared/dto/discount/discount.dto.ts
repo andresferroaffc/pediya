@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class GroupDto {
+export class DiscountDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -13,7 +13,12 @@ export class GroupDto {
   description: string;
 
   @ApiProperty()
-  @IsBoolean()
+  @IsNumber()
+  @IsNotEmpty()
+  percentage: number;
+
+  @ApiProperty()
+  @IsNumber()
   @IsOptional()
-  status: boolean;
+  minimum_amount: number;
 }
