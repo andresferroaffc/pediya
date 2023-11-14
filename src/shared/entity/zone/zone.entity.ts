@@ -3,10 +3,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Discount } from '../discount';
 import { Commission } from '../commission';
+import { Referral } from '../referral';
 
 @Entity('zones')
 export class Zone {
@@ -26,4 +28,6 @@ export class Zone {
   @ManyToOne(() => Commission, (commission) => commission.zone)
   @JoinColumn({ name: 'commission_id' })
   commission_id: Commission;
+  @OneToMany(() => Referral, (referral) => referral.zone_id)
+  referral: Referral[];
 }

@@ -7,3 +7,4 @@ export * from './TypeDocument';
 export * from './commission';
 export * from './discount';
 export * from './zone';
+export * from './payment-method';

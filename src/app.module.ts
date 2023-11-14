@@ -14,6 +14,7 @@ import { TypeDocumentModule } from './type-document/type-document.module';
 import { ZoneModule } from './zone/zone.module';
 import { CommissionModule } from './commission/commission.module';
 import { DiscountModule } from './discount/discount.module';
+import { PaymentMethodModule } from './payment-method/payment-method.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { DiscountModule } from './discount/discount.module';
     TypeDocumentModule,
     ZoneModule,
     CommissionModule,
-    DiscountModule
+    DiscountModule,
+    PaymentMethodModule
   ],
   controllers: [AppController],
   providers: [AppService],

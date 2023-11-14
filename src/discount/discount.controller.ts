@@ -47,14 +47,14 @@ export class DiscountController {
     return { message: menssageSuccessResponse('descuento').getOne, data };
   }
 
-  // Consultar todos los grupos
+  // Consultar todos los descuentos
   @Get('all')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<Discount[]>> {
     const data = await this.serviceDiscount.findAll();
-    return { message: menssageSuccessResponse('grupos').get, data };
+    return { message: menssageSuccessResponse('descuentos').get, data };
   }
 
   // Modificar descuento
@@ -86,7 +86,7 @@ export class DiscountController {
       page,
       limit,
     });
-    return { message: menssageSuccessResponse('grupos').get, data };
+    return { message: menssageSuccessResponse('descuentos').get, data };
   }
 
   // Eliminar descuento

@@ -51,4 +51,6 @@ export class User {
   @ManyToOne(() => TypeDocument, (typeDocument) => typeDocument.user)
   @JoinColumn({ name: 'type_document_id' })
   type_document_id: TypeDocument;
+  @OneToMany(() => Referral, (referral) => referral.user_id)
+  referral2: Referral[];
 }

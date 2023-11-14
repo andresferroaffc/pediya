@@ -1,4 +1,5 @@
 import {
+  Column,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -11,6 +12,12 @@ import { Referral } from '../referral';
 export class ProductReferral {
   @PrimaryGeneratedColumn()
   id: number;
+  @Column({ type: 'varchar', nullable: false, unique: true, length: 45 })
+  consecutive: string;
+  @Column({ type: 'int' })
+  quantity: number;
+  @Column({ type: 'decimal', precision: 20, scale: 2 })
+  unit_value: number;
   @ManyToOne(
     () => Referral,
     (referral) => {

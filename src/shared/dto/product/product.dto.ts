@@ -53,7 +53,7 @@ export class ProductDto {
   @ApiProperty()
   @IsEnum(TypeProduct)
   @IsNotEmpty()
-  typeProduct: TypeProduct;
+  type: TypeProduct;
 
   @ApiProperty()
   @IsNumber()
