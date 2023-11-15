@@ -143,7 +143,7 @@ export class TypeDocumentService {
   // Eliminar tipo documento
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    await this.typeDocumentRepo.delete(data).catch(async (error) => {
+    await this.typeDocumentRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('tipo documento').deleteError,

@@ -167,7 +167,7 @@ export class DiscountService {
   // Eliminar descuento
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    await this.discountRepo.delete(data).catch(async (error) => {
+    await this.discountRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('descuento').deleteError,

@@ -130,7 +130,7 @@ export class GroupService {
   // Eliminar grupo
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    await this.groupRepo.delete(data).catch(async (error) => {
+    await this.groupRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('grupo').deleteError,

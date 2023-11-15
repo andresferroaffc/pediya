@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ShoppingCart, User } from '../shared/entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import {
   EditShoppingCartDto,
   ShoppingCartDto,
@@ -52,60 +52,65 @@ export class ShoppingCartService {
 
     // Validar si el producto ya existe en el carrito de compras
     const addExist = await this.findExis(idBuyer, roleBuyer, dto);
+    validatExistException(
+      addExist,
+      'producto del carrito de compras',
+      'validatExistOne',
+    );
 
-    if (!addExist) {
-      const buyerExis = await this.userRepo.findOneBy({
-        id: idBuyer,
-        status: true,
-      });
-      validatExistException(buyerExis, 'usuario', 'ValidateNoexist');
+    const buyerExis = await this.userRepo.findOneBy({
+      id: idBuyer,
+      status: true,
+    });
+    validatExistException(buyerExis, 'usuario', 'ValidateNoexist');
 
-      if (roleBuyer !== RoleEnum.Cliente) {
-        seller = buyerExis;
-      } else {
-        user = buyerExis;
-      }
-
-      const producExis = await this.productRepo.findOneBy({
-        id: dto.product,
-        status: true,
-      });
-      validatExistException(producExis, 'producto', 'ValidateNoexist');
-      product = producExis;
-
-      const newData = this.shoppingCartRepo.create({
-        ...dto,
-        product_id: product,
-        seller_id: seller,
-        user_id: user,
-      });
-      return await this.shoppingCartRepo.save(newData).catch(async (error) => {
-        console.log(error);
-        throw new BadRequestException(
-          menssageErrorResponse('productos del carrito de compras').postError,
-        );
-      });
+    if (roleBuyer !== RoleEnum.Cliente) {
+      seller = buyerExis;
     } else {
-      const updateData: EditShoppingCartDto = {
-        count: addExist.count + dto.count,
-      };
-      return await this.update(addExist.id, updateData);
+      user = buyerExis;
     }
+
+    const producExis = await this.productRepo.findOneBy({
+      id: dto.product,
+      status: true,
+    });
+    validatExistException(producExis, 'producto', 'ValidateNoexist');
+    product = producExis;
+
+    // Validar si existen unidades suficientes en el stock
+    if (dto.count > producExis.stock) {
+      throw new BadRequestException(
+        'Error, no existen unidades suficientes para la compra.',
+      );
+    }
+
+    const newData = this.shoppingCartRepo.create({
+      ...dto,
+      product_id: product,
+      seller_id: seller,
+      user_id: user,
+    });
+    return await this.shoppingCartRepo.save(newData).catch(async (error) => {
+      console.log(error);
+      throw new BadRequestException(
+        menssageErrorResponse('productos del carrito de compras').postError,
+      );
+    });
   }
 
   // Validar si ya existe el producto por el cliente y vendedor en el carrito de compras
   async findExis(idBuyer: number, roleBuyer: string, dto: ShoppingCartDto) {
     let where = {
       product_id: dto.product,
-      user_id: { id: null },
-      seller_id: { id: null },
+      user_id: null,
+      seller_id: null,
     };
     if (roleBuyer === RoleEnum.Cliente) {
-      where.user_id.id = idBuyer;
-      delete where.seller_id;
+      where.user_id = { id: idBuyer };
+      where.seller_id = IsNull();
     } else {
-      where.user_id.id = dto.customer;
-      where.seller_id.id = idBuyer;
+      where.user_id = { id: dto.customer };
+      where.seller_id = { id: idBuyer };
     }
 
     const addExis = await this.shoppingCartRepo
@@ -116,7 +121,7 @@ export class ShoppingCartService {
     return addExis;
   }
 
-  // Consultar todos los grupos
+  // Consultar todos los productos del carrito por usuario
   async findAll(id: number, role: string): Promise<ShoppingCart[]> {
     let where: object;
     if (role === RoleEnum.Cliente) {
@@ -142,13 +147,23 @@ export class ShoppingCartService {
   }
 
   // Consultar un carrito de compras
-  async findOne(id: number): Promise<ShoppingCart> {
+  async findOne(
+    id: number,
+    idUser: number,
+    role: string,
+  ): Promise<ShoppingCart> {
+    let where: object;
+    if (role === RoleEnum.Cliente) {
+      where = { id: id, user_id: { id: idUser } };
+    } else {
+      where = { id: id, seller_id: { id: idUser } };
+    }
     const data = await this.shoppingCartRepo
       .createQueryBuilder('cart')
       .leftJoinAndSelect('cart.product_id', 'product')
       .leftJoinAndSelect('cart.user_id', 'user')
       .leftJoinAndSelect('cart.seller_id', 'seller')
-      .where({ id: id })
+      .where(where)
       .getOne()
       .catch(async (error) => {
         console.log(error);
@@ -156,13 +171,28 @@ export class ShoppingCartService {
           menssageErrorResponse('producto del carrito de compras').getOneError,
         );
       });
-    validatExistException(data, 'carrito de compras', 'ValidateNoexist');
+    validatExistException(
+      data,
+      'producto del carrito de compras',
+      'ValidateNoexist',
+    );
     return data;
   }
 
   // Modificar carrito de compras
-  async update(id: number, dto: EditShoppingCartDto): Promise<ShoppingCart> {
-    const data = await this.findOne(id);
+  async update(
+    id: number,
+    idUser: number,
+    role: string,
+    dto: EditShoppingCartDto,
+  ): Promise<ShoppingCart> {
+    const data = await this.findOne(id, idUser, role);
+    // Validar si existen unidades suficientes en el stock
+    if (dto.count > data.product_id.stock) {
+      throw new BadRequestException(
+        'Error, no existen unidades suficientes para la compra.',
+      );
+    }
     return await this.shoppingCartRepo
       .save({ ...data, ...dto })
       .catch(async (error) => {
@@ -173,10 +203,10 @@ export class ShoppingCartService {
       });
   }
 
-  // Eliminar carrito de compras
-  async delete(id: number): Promise<boolean> {
-    const data = await this.findOne(id);
-    await this.shoppingCartRepo.delete(data).catch(async (error) => {
+  // Eliminar producto del carrito de compras
+  async delete(id: number, idUser: number, role: string): Promise<boolean> {
+    const data = await this.findOne(id, idUser, role);
+    await this.shoppingCartRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('producto del carrito de compras').deleteError,

@@ -145,7 +145,7 @@ export class PaymentMethodService {
   // Eliminar metodo de pago
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    await this.paymentMethodRepo.delete(data).catch(async (error) => {
+    await this.paymentMethodRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('metodo de pago').deleteError,

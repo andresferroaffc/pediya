@@ -193,7 +193,7 @@ export class ZoneService {
   // Eliminar zona
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    await this.zoneRepo.delete(data).catch(async (error) => {
+    await this.zoneRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('zona').deleteError,
