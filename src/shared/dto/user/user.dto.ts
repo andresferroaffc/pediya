@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
@@ -87,4 +88,9 @@ export class UserDto {
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  is_dropshipping: boolean;
 }

@@ -42,6 +42,8 @@ export class User {
   city_code: string;
   @Column({ type: 'varchar', unique: true })
   user: string;
+  @Column({ type: 'boolean', default: false })
+  is_dropshipping: boolean;
   @Column({ type: 'varchar', unique: true, nullable: true, select: false })
   reset_password_token: string;
   @ManyToOne(() => Role, (role) => role.user)

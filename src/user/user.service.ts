@@ -21,6 +21,7 @@ import {
 } from '../sendemail/templates';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { RoleEnum } from 'src/common/enum';
 
 @Injectable()
 export class UserService {
@@ -52,6 +53,11 @@ export class UserService {
       id: dto.typeDocument,
     });
     validatExistException(typeDocExis, 'tipo documento', 'ValidateNoexist');
+    if (dto.role !== RoleEnum.Vendedor && dto.is_dropshipping === true) {
+      throw new BadRequestException(
+        'Error, solo los usuarios con rol vendedor pueden ser dropshipping',
+      );
+    }
     const newData = this.userRepo.create({
       ...dto,
       role: rolExis,
@@ -117,20 +123,46 @@ export class UserService {
   // Modificar usuario
   async update(id: number, dto: EditUserDto): Promise<User> {
     const data = await this.findOne(id);
+    let roleValue = data.role;
+    let typeDoc = data.type_document_id;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
         message: 'El atributo ya está en uso',
         attributeExist,
       });
-    return await this.userRepo
-      .save({ ...data, ...dto })
-      .catch(async (error) => {
-        console.log(error);
-        throw new BadRequestException(
-          menssageErrorResponse('usuario').putError,
-        );
+
+    if (dto.role) {
+      const rolExis = await this.roleRepo.findOneBy({
+        name: dto.role,
       });
+      validatExistException(rolExis, 'rol', 'ValidateNoexist');
+      roleValue = rolExis;
+      if (dto.role !== RoleEnum.Vendedor && dto.is_dropshipping === true) {
+        throw new BadRequestException(
+          'Error, solo los usuarios con rol vendedor pueden ser dropshipping',
+        );
+      }
+    }
+
+    if (dto.typeDocument) {
+      const typeDocExis = await this.typeDocumentRepo.findOneBy({
+        id: dto.typeDocument,
+      });
+      validatExistException(typeDocExis, 'tipo documento', 'ValidateNoexist');
+      typeDoc = typeDocExis;
+    }
+
+    const newData = this.userRepo.create({
+      ...data,
+      ...dto,
+      role: roleValue,
+      type_document_id: typeDoc,
+    });
+    return await this.userRepo.save(newData).catch(async (error) => {
+      console.log(error);
+      throw new BadRequestException(menssageErrorResponse('usuario').putError);
+    });
   }
 
   // Consultar por paginación

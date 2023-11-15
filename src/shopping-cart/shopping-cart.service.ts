@@ -58,7 +58,6 @@ export class ShoppingCartService {
         id: idBuyer,
         status: true,
       });
-
       validatExistException(buyerExis, 'usuario', 'ValidateNoexist');
 
       if (roleBuyer !== RoleEnum.Cliente) {
@@ -71,8 +70,8 @@ export class ShoppingCartService {
         id: dto.product,
         status: true,
       });
-      product = producExis;
       validatExistException(producExis, 'producto', 'ValidateNoexist');
+      product = producExis;
 
       const newData = this.shoppingCartRepo.create({
         ...dto,
