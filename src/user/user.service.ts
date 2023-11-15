@@ -62,6 +62,7 @@ export class UserService {
       ...dto,
       role: rolExis,
       type_document_id: typeDocExis,
+      type_person: dto.typePerson,
     });
     return await this.userRepo
       .save(newData)
@@ -125,6 +126,7 @@ export class UserService {
     const data = await this.findOne(id);
     let roleValue = data.role;
     let typeDoc = data.type_document_id;
+    let type_person = data.type_person;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
@@ -153,11 +155,16 @@ export class UserService {
       typeDoc = typeDocExis;
     }
 
+    if (dto.typePerson) {
+      type_person = dto.typePerson;
+    }
+
     const newData = this.userRepo.create({
       ...data,
       ...dto,
       role: roleValue,
       type_document_id: typeDoc,
+      type_person: type_person,
     });
     return await this.userRepo.save(newData).catch(async (error) => {
       console.log(error);
