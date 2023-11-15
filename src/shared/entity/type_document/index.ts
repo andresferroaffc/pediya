@@ -1,1 +1,1 @@
-export * from './type_document.entity';
+export * from './type-document.entity';

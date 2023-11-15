@@ -62,12 +62,12 @@ export class UserController {
   }
 
   // Modificar usuario
-  @Patch('update-user')
+  @Patch('update-user/:id')
   @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async updateUser(
-    @user('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: EditUserDto,
   ): Promise<HttpResponse<User>> {
     const data = await this.serviceUser.update(id, dto);

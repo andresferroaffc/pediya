@@ -116,7 +116,7 @@ export class UserService {
 
   // Modificar usuario
   async update(id: number, dto: EditUserDto): Promise<User> {
-    const data = await this.findOne(id, { status: true });
+    const data = await this.findOne(id);
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({

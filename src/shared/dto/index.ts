@@ -3,7 +3,7 @@ export * from './commons';
 export * from './auth';
 export * from './product';
 export * from './referral';
-export * from './TypeDocument';
+export * from './type-document';
 export * from './commission';
 export * from './discount';
 export * from './zone';

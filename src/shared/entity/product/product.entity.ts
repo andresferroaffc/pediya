@@ -11,6 +11,7 @@ import { ProductReferral } from '../product-referral';
 import { TypeProduct } from 'src/common/enum';
 import { Discount } from '../discount';
 import { Commission } from '../commission';
+import { ShoppingCart } from '../shopping-cart';
 
 @Entity('products')
 export class Product {
@@ -48,4 +49,11 @@ export class Product {
     },
   )
   productReferral: ProductReferral[];
+  @OneToMany(
+    () => ShoppingCart,
+    (shoppingCart) => {
+      shoppingCart.product_id;
+    },
+  )
+  shopping_cart_id: ShoppingCart[];
 }

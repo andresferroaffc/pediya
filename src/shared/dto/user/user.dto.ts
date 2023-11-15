@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { RoleEnum } from '../../../common/enum';
 import { TypePerson } from 'src/common/enum/type-person.enum';
 
@@ -75,4 +82,9 @@ export class UserDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  status: boolean;
 }

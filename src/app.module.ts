@@ -15,6 +15,7 @@ import { ZoneModule } from './zone/zone.module';
 import { CommissionModule } from './commission/commission.module';
 import { DiscountModule } from './discount/discount.module';
 import { PaymentMethodModule } from './payment-method/payment-method.module';
+import { ShoppingCartModule } from './shopping-cart/shopping-cart.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { PaymentMethodModule } from './payment-method/payment-method.module';
     ZoneModule,
     CommissionModule,
     DiscountModule,
-    PaymentMethodModule
+    PaymentMethodModule,
+    ShoppingCartModule
   ],
   controllers: [AppController],
   providers: [AppService],

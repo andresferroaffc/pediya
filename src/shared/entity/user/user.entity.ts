@@ -8,8 +8,9 @@ import {
 } from 'typeorm';
 import { Role } from '../role';
 import { Referral } from '../referral';
-import { TypePerson } from 'src/common/enum/type-person.enum';
+import { TypePerson } from '../../../common/enum/type-person.enum';
 import { TypeDocument } from '../type_document';
+import { ShoppingCart } from '../shopping-cart';
 
 @Entity('users')
 export class User {
@@ -53,4 +54,18 @@ export class User {
   type_document_id: TypeDocument;
   @OneToMany(() => Referral, (referral) => referral.user_id)
   referral2: Referral[];
+  @OneToMany(
+    () => ShoppingCart,
+    (shoppingCart) => {
+      shoppingCart.user_id;
+    },
+  )
+  shopping_cart_id: ShoppingCart[];
+  @OneToMany(
+    () => ShoppingCart,
+    (shoppingCart) => {
+      shoppingCart.seller_id;
+    },
+  )
+  shopping_cart_id2: ShoppingCart[];
 }
