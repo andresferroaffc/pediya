@@ -14,7 +14,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
-import { TypeCommission } from 'src/common/enum';
+import { TypeCommission } from '../common/enum';
 
 @Injectable()
 export class CommissionService {
@@ -38,9 +38,9 @@ export class CommissionService {
       );
     }
 
-    if (dto.minimum_amount < 0) {
+    if (dto.minimum_amount && dto.minimum_amount <= 0) {
       throw new BadRequestException(
-        'Error, el monto minimo debe ser un valor positivo.',
+        'Error, el monto minimo debe ser mayor a 0.',
       );
     }
 
@@ -103,9 +103,9 @@ export class CommissionService {
       );
     }
 
-    if (dto.minimum_amount && dto.minimum_amount < 0) {
+    if (dto.minimum_amount && dto.minimum_amount <= 0) {
       throw new BadRequestException(
-        'Error, el monto minimo debe ser positivo.',
+        'Error, el monto minimo debe ser mayor a 0.',
       );
     }
 

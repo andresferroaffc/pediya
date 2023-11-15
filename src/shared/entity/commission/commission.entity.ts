@@ -13,7 +13,13 @@ export class Commission {
   description: string;
   @Column({ type: 'int' })
   percentage: number;
-  @Column({ type: 'decimal', precision: 18, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    nullable: true,
+    default: 0,
+  })
   minimum_amount: number;
   @Column({ type: 'enum', enum: TypeCommission })
   type: TypeCommission;
