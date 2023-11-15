@@ -14,6 +14,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
+import { TypeCommission } from 'src/common/enum';
 
 @Injectable()
 export class CommissionService {
@@ -44,8 +45,10 @@ export class CommissionService {
     }
 
     // Validar comison general
-    const isGeneral = await this.commissionRepo.findOneBy({ is_general: true });
-    if (isGeneral && dto.is_general === true) {
+    const isGeneral = await this.commissionRepo.findOneBy({
+      type: TypeCommission.GENERAL,
+    });
+    if (isGeneral && dto.type === TypeCommission.GENERAL) {
       throw new BadRequestException('Error, ya existe una comision general.');
     }
 
@@ -109,10 +112,10 @@ export class CommissionService {
     // Validar comison general
     const isGeneral = await this.commissionRepo
       .createQueryBuilder('commission')
-      .where({ is_general: true })
-      .andWhere("commission.id != :id",{id})
+      .where({ type: TypeCommission.GENERAL })
+      .andWhere('commission.id != :id', { id })
       .getOne();
-    if (isGeneral && dto.is_general === true) {
+    if (isGeneral && dto.type === TypeCommission.GENERAL) {
       throw new BadRequestException('Error, ya existe una comision general.');
     }
     return await this.commissionRepo

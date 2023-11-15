@@ -22,12 +22,7 @@ export class CommissionDto {
   @IsNumber()
   @IsOptional()
   minimum_amount: number;
-
-  @ApiProperty()
-  @IsBoolean()
-  @IsOptional()
-  is_general: boolean;
-
+  
   @ApiProperty()
   @IsEnum(TypeCommission)
   @IsNotEmpty()

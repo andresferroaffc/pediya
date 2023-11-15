@@ -15,8 +15,6 @@ export class Commission {
   percentage: number;
   @Column({ type: 'decimal', precision: 18, scale: 2 })
   minimum_amount: number;
-  @Column({ type: 'boolean', default: false })
-  is_general: boolean;
   @Column({ type: 'enum', enum: TypeCommission })
   type: TypeCommission;
   @OneToMany(() => Zone, (zone) => zone.commission_id)
