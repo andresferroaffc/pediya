@@ -9,7 +9,7 @@ import {
 import { User } from '../user';
 import { ProductReferral } from '../product-referral';
 import { PaymentMethod } from '../payment-method';
-import { StatusReferralEnum } from 'src/common/enum/status_referral';
+import { StatusReferralEnum } from '../../../common/enum/status_referral';
 import { Zone } from '../zone';
 
 @Entity('referrals')
@@ -20,7 +20,7 @@ export class Referral {
   consecutive: string;
   @Column({ type: 'timestamp' })
   date_of_elaboration: Date;
-  @Column({ type: 'decimal', precision: 20, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   payment_method_value: number;
   @Column({ type: 'varchar', nullable: true })
   description: string;

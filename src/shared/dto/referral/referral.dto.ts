@@ -1,25 +1,33 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Product } from 'src/shared/entity';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Product } from '../../../shared/entity';
 import { JoinTable, ManyToMany } from 'typeorm';
 
 export class ReferralDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  name: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  description: string;
+  payment_method_value: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  seller: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  payment_method: number;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
-  status: number;
+  description: string;
 
-  @ManyToMany(() => Product)
-  @JoinTable()
-  x: Product[];
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  zone: number;
+
 }
