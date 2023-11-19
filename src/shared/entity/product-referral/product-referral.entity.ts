@@ -18,6 +18,10 @@ export class ProductReferral {
   quantity: number;
   @Column({ type: 'decimal', precision: 20, scale: 2 })
   unit_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  discount_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  commission_value: number;
   @ManyToOne(
     () => Referral,
     (referral) => {
@@ -27,7 +31,7 @@ export class ProductReferral {
   @JoinColumn({
     name: 'referral_id',
   })
-  referral: Referral[];
+  referral: Referral;
   @ManyToOne(
     () => Product,
     (product) => {
@@ -37,5 +41,5 @@ export class ProductReferral {
   @JoinColumn({
     name: 'product_id',
   })
-  product: Product[];
+  product: Product;
 }

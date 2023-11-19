@@ -32,7 +32,7 @@ export class AuthService {
     // Get user information
     const userDetails = await this.usersRepo
       .createQueryBuilder('user')
-      .select(['user.id', 'user.user', 'user.email', 'user.password'])
+      .select(['user.id', 'user.user', 'user.email', 'user.password','user.is_dropshipping'])
       .innerJoinAndSelect('user.role', 'role')
       .where({
         user: userDTO.user,
@@ -51,7 +51,6 @@ export class AuthService {
 
     // Check if the given password match with saved password
     const isValid = bcrypt.compareSync(user.password, userDetails.password);
-
     if (isValid) {
       return {
         status: 200,
@@ -64,6 +63,7 @@ export class AuthService {
               id: userDetails.id,
               user: userDetails.user,
               role: userDetails.role.name,
+              dropshipping: userDetails.is_dropshipping
             },
             { expiresIn: process.env.JWT_EXPIRES_IN },
           ),

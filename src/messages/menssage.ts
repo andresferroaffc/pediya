@@ -21,17 +21,18 @@ export const menssageSuccessResponse = (modulo: string) => {
 
 export const menssageErrorResponse = (modulo: string) => {
   return {
-    exist: `El/La ${modulo}, ya esta registrado en el sistema`,
-    error: `Se ha producido un error, Comuniquece con el administrador`,
-    postError: `Se ha producido un error, no se pudo crear el/la ${modulo}`,
-    getError: `Se ha producido un error, no se pudo cargar los/las ${modulo}`,
-    getOneError: `Se ha producido un error, no se pudo cagar el/la ${modulo}`,
-    putError: `Se ha producido un error, no se pudo modificar el/la ${modulo}`,
-    deleteError: `Se ha producido un error, no se pudo eliminar el/la ${modulo}`,
-    noExist: `El/La ${modulo}, no esta registrado en el sistema`,
+    exist: `El/La ${modulo}, ya esta registrado en el sistema.`,
+    error: `Se ha producido un error, Comuniquece con el administrador.`,
+    postError: `Se ha producido un error, no se pudo crear el/la ${modulo}.`,
+    getError: `Se ha producido un error, no se pudo cargar los/las ${modulo}.`,
+    getOneError: `Se ha producido un error, no se pudo cagar el/la ${modulo}.`,
+    putError: `Se ha producido un error, no se pudo modificar el/la ${modulo}.`,
+    deleteError: `Se ha producido un error, no se pudo eliminar el/la ${modulo}.`,
+    noExist: `El/La ${modulo}, no esta registrado en el sistema.`,
+    noExistMany:`Los/las ${modulo}, no estan registrados en el sistema.`,
     emailError: `Se ha producido un error al enviar el correo, Comuniquece con el administrador.
     ${modulo}`,
-    notEmpty: `${modulo} should not be empty`,
+    notEmpty: `${modulo} should not be empty.`,
     general: modulo,
   };
 };

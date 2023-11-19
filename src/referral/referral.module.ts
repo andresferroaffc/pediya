@@ -5,9 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Commission,
   Discount,
+  Parameter,
+  PaymentMethod,
   Product,
   Referral,
+  ShoppingCart,
   User,
+  Zone,
 } from 'src/shared/entity';
 import { ProductReferral } from '../shared/entity/product-referral';
 
@@ -17,9 +21,13 @@ import { ProductReferral } from '../shared/entity/product-referral';
       Referral,
       ProductReferral,
       User,
-      Discount,
-      Commission,
       Product,
+      PaymentMethod,
+      Zone,
+      ShoppingCart,
+      Commission,
+      Discount,
+      Parameter
     ]),
   ],
   controllers: [ReferralController],

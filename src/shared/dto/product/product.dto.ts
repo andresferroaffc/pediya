@@ -64,4 +64,9 @@ export class ProductDto {
   @IsNumber()
   @IsOptional()
   commission: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  description: string;
 }

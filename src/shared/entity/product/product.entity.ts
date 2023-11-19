@@ -33,6 +33,8 @@ export class Product {
   inventoried: boolean;
   @Column({ type: 'enum', enum: TypeProduct })
   type: TypeProduct;
+  @Column({ nullable: true, length: 45 })
+  description: string;
   @ManyToOne(() => Group, (group) => group.product)
   @JoinColumn({ name: 'inventory_group_id' })
   inventory_group_id: Group;

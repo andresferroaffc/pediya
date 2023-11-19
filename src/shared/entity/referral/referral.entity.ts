@@ -26,6 +26,20 @@ export class Referral {
   description: string;
   @Column({ type: 'enum', enum: StatusReferralEnum })
   status: StatusReferralEnum;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  discount_zone_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  discount_amount_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  discount_products_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  commission_zone_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  commission_amount_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  commission_products_value: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  commission_default_value: number;
   @ManyToOne(() => User, (user) => user.referral)
   @JoinColumn({ name: 'seller_id' })
   seller_id: User;

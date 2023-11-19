@@ -18,6 +18,11 @@ export function validatExistException(
       if (!object || object.length === 0 || object === false)
         throw new NotFoundException(menssageErrorResponse(message).noExist);
       break;
+    case 'ValidateNoexistMany':
+      // code block
+      if (!object || object.length === 0 || object === false)
+        throw new NotFoundException(menssageErrorResponse(message).noExistMany);
+      break;
     case 'validatExistOne':
       if (object && object !== null)
         throw new BadRequestException(menssageErrorResponse(message).exist);

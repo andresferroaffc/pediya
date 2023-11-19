@@ -66,6 +66,18 @@ export class ShoppingCartService {
 
     if (roleBuyer !== RoleEnum.Cliente) {
       seller = buyerExis;
+      // Validar que solo adicione al carrito porductos de un solo cliente
+      const lastRecord = await this.shoppingCartRepo
+        .createQueryBuilder('referral')
+        .leftJoinAndSelect('referral.user_id', 'user')
+        .where({ seller_id: seller })
+        .orderBy('referral.id', 'DESC')
+        .getOne();
+      if (lastRecord && lastRecord.user_id.id !== dto.customer) {
+        throw new BadRequestException(
+          'Error, no puedes adicionar productos de otro cliente a este carrito de compras.',
+        );
+      }
     } else {
       user = buyerExis;
     }
@@ -214,4 +226,5 @@ export class ShoppingCartService {
     });
     return true;
   }
+  
 }

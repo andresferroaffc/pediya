@@ -9,3 +9,5 @@ export * from './commission';
 export * from './discount';
 export * from './payment-method';
 export * from './shopping-cart';
+export * from './product-referral';
+export * from './parameters';

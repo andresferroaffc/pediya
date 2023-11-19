@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { TypeDiscount } from '../../../common/enum';
 
 export class DiscountDto {
   @ApiProperty()
@@ -21,4 +28,9 @@ export class DiscountDto {
   @IsNumber()
   @IsOptional()
   minimum_amount: number;
+
+  @ApiProperty()
+  @IsEnum(TypeDiscount)
+  @IsNotEmpty()
+  type: TypeDiscount;
 }

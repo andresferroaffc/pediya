@@ -33,6 +33,9 @@ export class UserController {
 
   // Crear usuario
   @Post('create-user')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @ApiBearerAuth()
   async create(@Body() dto: UserDto): Promise<HttpResponse<User>> {
     const data = await this.serviceUser.create(dto);
