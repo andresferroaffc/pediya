@@ -4,6 +4,7 @@ import { ReferralService } from './referral.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Commission,
+  CommissionHistory,
   Discount,
   Parameter,
   PaymentMethod,
@@ -27,7 +28,8 @@ import { ProductReferral } from '../shared/entity/product-referral';
       ShoppingCart,
       Commission,
       Discount,
-      Parameter
+      Parameter,
+      CommissionHistory,
     ]),
   ],
   controllers: [ReferralController],

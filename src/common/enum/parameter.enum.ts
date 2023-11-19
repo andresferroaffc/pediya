@@ -1,3 +1,3 @@
-export enum Parameters {
+export enum ParametersEnum {
   VendedoresComisiones = 'VendedoresComisiones',
 }

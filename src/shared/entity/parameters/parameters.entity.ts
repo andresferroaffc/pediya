@@ -1,5 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Product } from '../product';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('parameters')
 export class Parameter {

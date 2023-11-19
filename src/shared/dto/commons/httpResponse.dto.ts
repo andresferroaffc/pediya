@@ -8,5 +8,5 @@ export class HttpResponse<T> {
   message: string;
   @ApiProperty()
   @IsNotEmpty()
-  data: T;
+  data: T ;
 }

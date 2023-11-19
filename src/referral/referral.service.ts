@@ -2,7 +2,9 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { EditStatusReferralDto, ReferralDto } from '../shared/dto';
 import {
   Commission,
+  CommissionHistory,
   Discount,
+  Parameter,
   PaymentMethod,
   Product,
   Referral,
@@ -12,7 +14,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ProductReferral } from '../shared/entity';
-import { RoleEnum, TypeCommission } from '../common/enum';
+import {
+  ParametersEnum,
+  RoleEnum,
+  TypeCommission,
+  TypeCommissionHistory,
+} from '../common/enum';
 import { validatExistException } from '../common/utils';
 import { menssageErrorResponse } from '../messages';
 import { StatusReferralEnum } from '../common/enum/status_referral';
@@ -36,7 +43,22 @@ export class ReferralService {
     private discountRepo: Repository<Discount>,
     @InjectRepository(Commission)
     private commissionRepo: Repository<Commission>,
+    @InjectRepository(Parameter)
+    private parameterRepo: Repository<Parameter>,
+    @InjectRepository(CommissionHistory)
+    private commissionHistoryRepo: Repository<CommissionHistory>,
   ) {}
+
+  // Consultar parametros
+  async findOneParamete(name: string): Promise<Parameter> {
+    const parameterExis = await this.parameterRepo.findOneBy({ name: name });
+    validatExistException(
+      parameterExis,
+      `parametro ${name} `,
+      'ValidateNoexist',
+    );
+    return parameterExis;
+  }
 
   // Crear remision
   async create(
@@ -144,14 +166,14 @@ export class ReferralService {
           ? 0
           : totalAmountProduct *
             (data.product_id.commission_id.percentage / 100);
-      commissionProductGeneral = discountProductGeneral + commissionProduct;
+      commissionProductGeneral = commissionProductGeneral + commissionProduct;
     }
 
     // Descuentos
     const discountAmountExis = await this.discountRepo
       .createQueryBuilder('discount')
       .where(
-        'discount.minimum_amount <= :amountValue and discount.minimum_amount > 0',
+        'discount.minimum_amount <= :amountValue and discount.minimum_amount >= 1',
         { amountValue },
       )
       .orderBy('discount.minimum_amount', 'DESC')
@@ -168,8 +190,16 @@ export class ReferralService {
     amountValue =
       amountValue - (discountAmount + discountZone + discountProductGeneral);
 
+    // Validar si el vendedor de la empresa puede resivir comisiones
+    const validateCommissionVen = await this.findOneParamete(
+      ParametersEnum.VendedoresComisiones,
+    );
+
     // Comisiones
-    if (role !== RoleEnum.Cliente && dropshipping === true) {
+    if (
+      role !== RoleEnum.Cliente &&
+      (dropshipping === true || validateCommissionVen.status === true)
+    ) {
       // Consultar comision general o comison por defecto
       const comissionAmountExisGeneral = await this.commissionRepo.findOneBy({
         type: TypeCommission.GENERAL,
@@ -180,10 +210,10 @@ export class ReferralService {
         'ValidateNoexist',
       );
 
-      const commissionAmountExis = await this.discountRepo
+      const commissionAmountExis = await this.commissionRepo
         .createQueryBuilder('commission')
         .where(
-          'commission.minimum_amount <= :amountValue and commission.minimum_amount > 0',
+          'commission.minimum_amount <= :amountValue and commission.minimum_amount >= 1',
           { amountValue },
         )
         .orderBy('commission.minimum_amount', 'DESC')
@@ -200,6 +230,8 @@ export class ReferralService {
       commissionDefault = zoneExis.commission_id
         ? 0
         : amountValue * (comissionAmountExisGeneral.percentage / 100);
+    } else {
+      commissionProductGeneral = 0;
     }
 
     const newDataReferral = this.referrralRepo.create({
@@ -239,10 +271,34 @@ export class ReferralService {
     const arrayProductReferral = await this.savePorductReferral(
       productShoppingCartExis,
       referralSave,
+      role,
+      dropshipping,
+      validateCommissionVen.status,
     );
 
     // Eliminar productos del carrito de compras
-    // this.shoppingCartRepo.remove(productShoppingCartExis);
+    this.shoppingCartRepo.remove(productShoppingCartExis);
+
+    // Comision general
+    const commissionGeneral =
+      commissionAmount +
+      commissionZone +
+      commissionProductGeneral +
+      commissionDefault;
+
+    if (
+      role !== RoleEnum.Cliente &&
+      (dropshipping === true || validateCommissionVen.status === true)
+    ) {
+      // Insertar registro de comision en el hsitorial
+      const commissionHistory = this.commissionHistoryRepo.create({
+        status: TypeCommissionHistory.NOPAGO,
+        amount: commissionGeneral,
+        referral_id: referralSave,
+      });
+
+      this.commissionHistoryRepo.save(commissionHistory);
+    }
 
     return { referralSave, arrayProductReferral };
   }
@@ -273,9 +329,13 @@ export class ReferralService {
   async savePorductReferral(
     dataProduct: ShoppingCart[],
     dataReferral: Referral,
+    role: string,
+    dropshipping: boolean,
+    validateCommissionVen: boolean,
   ) {
     let arrayProductReferral: ProductReferral[] = [];
     for (const data of dataProduct) {
+      let commission_value: number = 0;
       const consecutive = await this.generateUniqueCodePoroductReferral();
       // Generar descuentos por producto
       const discount_value =
@@ -285,14 +345,18 @@ export class ReferralService {
             data.product_id.price *
             (data.product_id.discount_id.percentage / 100);
 
-      // Generar comision por producto
-      const commission_value =
-        data.product_id.commission_id === null
-          ? 0
-          : data.count *
-            data.product_id.price *
-            (data.product_id.commission_id.percentage / 100);
-
+      if (
+        role !== RoleEnum.Cliente &&
+        (dropshipping === true || validateCommissionVen === true)
+      ) {
+        // Generar comision por producto
+        commission_value =
+          data.product_id.commission_id === null
+            ? 0
+            : data.count *
+              data.product_id.price *
+              (data.product_id.commission_id.percentage / 100);
+      }
       const newData = this.productReferralRepo.create({
         consecutive: consecutive,
         quantity: data.count,
@@ -365,8 +429,8 @@ export class ReferralService {
     });
   }
 
-  // Consultar remision
-  async findOne(id: number, idUser: number, role: string): Promise<object> {
+  // Condicion para consulta de remisiones
+  async generateWhereReferral(id: number, idUser: number, role: string) {
     let whereShoppingCart;
     // Crear condicion de consulta dependiendo del rol del usuario
     switch (role) {
@@ -388,7 +452,16 @@ export class ReferralService {
           `Erro, el rol ${role}, no existe en el sistema.`,
         );
     }
+    return whereShoppingCart;
+  }
 
+  // Consultar una remision
+  async findOne(id: number, idUser: number, role: string): Promise<object> {
+    const whereShoppingCart = await this.generateWhereReferral(
+      id,
+      idUser,
+      role,
+    );
     const referralExis = await this.referrralRepo
       .createQueryBuilder('referral')
       .leftJoinAndSelect('referral.seller_id', 'seller')
@@ -419,5 +492,29 @@ export class ReferralService {
       });
 
     return data;
+  }
+
+  // Consultar remisiones
+  async findAll(idUser: number, role: string): Promise<object> {
+    let referralMany = [];
+    const whereShoppingCart = await this.generateWhereReferral(0, idUser, role);
+    delete whereShoppingCart.id;
+    const referralExis = await this.referrralRepo
+      .createQueryBuilder('referral')
+      .leftJoinAndSelect('referral.seller_id', 'seller')
+      .leftJoinAndSelect('referral.user_id', 'user')
+      .innerJoinAndSelect('referral.payment_methods_id', 'payment_methods')
+      .leftJoinAndSelect('referral.zone_id', 'zone')
+      .where(whereShoppingCart)
+      .getMany();
+
+    for (const data of referralExis) {
+      delete data.zone_id.discount_id;
+      delete data.zone_id.commission_id;
+      const arrayProductReferral = await this.findPorductReferral(data.id);
+      referralMany.push({ referralExis, arrayProductReferral });
+    }
+
+    return referralMany;
   }
 }

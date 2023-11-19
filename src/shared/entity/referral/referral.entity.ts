@@ -11,6 +11,7 @@ import { ProductReferral } from '../product-referral';
 import { PaymentMethod } from '../payment-method';
 import { StatusReferralEnum } from '../../../common/enum/status_referral';
 import { Zone } from '../zone';
+import { CommissionHistory } from '../commission-history';
 
 @Entity('referrals')
 export class Referral {
@@ -59,4 +60,11 @@ export class Referral {
     },
   )
   productReferral: ProductReferral[];
+  @OneToMany(
+    () => CommissionHistory,
+    (commissionHistory) => {
+      commissionHistory.referral_id;
+    },
+  )
+  commissionHistory: CommissionHistory[];
 }

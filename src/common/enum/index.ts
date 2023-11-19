@@ -7,3 +7,4 @@ export * from './type-document.enum';
 export * from './status_referral';
 export * from './parameter.enum';
 export * from './type_discount.enum';
+export * from './commission-history.enum';

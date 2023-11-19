@@ -11,7 +11,7 @@ export class Discount {
   name: string;
   @Column({ type:'varchar',nullable: true, length: 45 })
   description: string;
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 5, scale: 2 })
   percentage: number;
   @Column({ type: 'decimal', precision: 18, scale: 2 })
   minimum_amount: number;

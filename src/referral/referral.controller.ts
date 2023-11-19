@@ -69,4 +69,17 @@ export class ReferralController {
     const data = await this.serviceReferral.findOne(id, idUser, role);
     return { message: menssageSuccessResponse('remision').getOne, data };
   }
+
+  // Consultar todas las remisiones
+  @Get('all')
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findAll(
+    @user('id') idUser: number,
+    @user('role') role: string,
+  ): Promise<HttpResponse<object>> {
+    const data = await this.serviceReferral.findAll(idUser, role);
+    return { message: menssageSuccessResponse('remisiones').get, data };
+  }
 }

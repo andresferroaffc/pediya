@@ -11,3 +11,4 @@ export * from './payment-method';
 export * from './shopping-cart';
 export * from './product-referral';
 export * from './parameters';
+export * from './commission-history';

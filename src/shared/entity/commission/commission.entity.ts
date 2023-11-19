@@ -11,7 +11,7 @@ export class Commission {
   name: string;
   @Column({ nullable: true, length: 45 })
   description: string;
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 5, scale: 2 })
   percentage: number;
   @Column({
     type: 'decimal',
