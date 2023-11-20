@@ -12,6 +12,7 @@ import {
   Delete,
   UploadedFile,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Roles } from '../common/decorator';
@@ -24,7 +25,7 @@ import { Product } from '../shared/entity';
 import { menssageSuccessResponse } from '../messages';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { renameImage } from '../helpers';
+import { fileFilter, renameImage } from '../helpers';
 
 @ApiTags('Product')
 @Controller('product')
@@ -105,16 +106,45 @@ export class ProductController {
   }
 
   // Cargar imagen del producto
-  @Post('upload')
+  @Patch('upload-image-product/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
         destination: './image-products',
-        filename: renameImage
+        filename: renameImage,
       }),
+      fileFilter: fileFilter,
     }),
   )
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return file.filename;
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Error, debe cargar una imagen valida.');
+    }
+    const data = await this.serviceProduct.saveImage(file.filename, id);
+    return {
+      message: menssageSuccessResponse('imagen del producto').post,
+      data,
+    };
+  }
+
+  // Eliminar imagen del producto
+  @Delete('delete-image/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async deleteImage(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<boolean>> {
+    const data = await this.serviceProduct.deleteImageUpdate(id);
+    return {
+      message: menssageSuccessResponse('imagen del producto').delete,
+      data,
+    };
   }
 }

@@ -15,6 +15,7 @@ import {
 } from 'nestjs-typeorm-paginate';
 import { SelectOrderBy, validatExistException } from '../common/utils';
 import { GroupService } from '../group/group.service';
+import * as fs from 'fs';
 
 @Injectable()
 export class ProductService {
@@ -244,11 +245,38 @@ export class ProductService {
   // Eliminar producto
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
+    
     await this.productRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
         menssageErrorResponse('producto').deleteError,
       );
+    });
+    this.deleteImage(data.img);
+    return true;
+  }
+
+  // Guardar imagen del producto
+  async saveImage(fileName: string, id: number) {
+    const data = await this.findOne(id);
+    await this.deleteImage(data.img);
+    this.productRepo.update(data.id, { img: fileName });
+    return true;
+  }
+
+  async deleteImageUpdate(id: number) {
+    const data = await this.findOne(id);
+    this.productRepo.update(data.id, { img: null });
+    return await this.deleteImage(data.img);
+  }
+
+  // Eliminar imagen del producto
+  async deleteImage(filname: string) {
+    fs.unlink(`./image-products/${filname}`, (err) => {
+      if (err) {
+        console.error(err);
+        return err;
+      }
     });
     return true;
   }

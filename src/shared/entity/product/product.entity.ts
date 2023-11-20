@@ -35,7 +35,7 @@ export class Product {
   type: TypeProduct;
   @Column({ nullable: true, length: 45 })
   description: string;
-  @Column({ type: 'varchar', nullable: true, length: 50 })
+  @Column({ type: 'varchar', nullable: true, length: 200 })
   img: string;
   @ManyToOne(() => Group, (group) => group.product)
   @JoinColumn({ name: 'inventory_group_id' })
