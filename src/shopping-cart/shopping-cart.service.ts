@@ -60,7 +60,6 @@ export class ShoppingCartService {
 
     const buyerExis = await this.userRepo.findOneBy({
       id: idBuyer,
-      status: true,
     });
     validatExistException(buyerExis, 'usuario', 'ValidateNoexist');
 
@@ -166,9 +165,9 @@ export class ShoppingCartService {
   ): Promise<ShoppingCart> {
     let where: object;
     if (role === RoleEnum.Cliente) {
-      where = { id: id, user_id: { id: idUser } };
+      where = { product_id: { id: id }, user_id: { id: idUser } };
     } else {
-      where = { id: id, seller_id: { id: idUser } };
+      where = { product_id: { id: id }, seller_id: { id: idUser } };
     }
     const data = await this.shoppingCartRepo
       .createQueryBuilder('cart')
@@ -226,5 +225,4 @@ export class ShoppingCartService {
     });
     return true;
   }
-  
 }
