@@ -7,9 +7,9 @@ import { Product } from '../product';
 export class Commission {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ nullable: false, unique: true, length: 45 })
+  @Column({ nullable: false, unique: true, length: 60 })
   name: string;
-  @Column({ nullable: true, length: 45 })
+  @Column({ nullable: true, length: 200 })
   description: string;
   @Column({ type: 'decimal', precision: 5, scale: 2 })
   percentage: number;

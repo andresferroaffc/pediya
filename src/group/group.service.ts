@@ -58,6 +58,20 @@ export class GroupService {
     return data;
   }
 
+  // Consultar un grupo por nombre
+  async findOneGroup(name: string): Promise<Group> {
+    const data = await this.groupRepo
+      .findOneBy({ name: name })
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('grupo').getOneError,
+        );
+      });
+    validatExistException(data, 'grupo', 'ValidateNoexist');
+    return data;
+  }
+
   // Modificar grupo
   async update(id: number, dto: EditGroupDto): Promise<Group> {
     const data = await this.findOne(id);

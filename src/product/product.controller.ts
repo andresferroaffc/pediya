@@ -147,4 +147,18 @@ export class ProductController {
       data,
     };
   }
+
+  // Cargar productos desde archivo excel
+
+  @Post('change-product')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async changeProduct() {
+    const data = await this.serviceProduct.changeProduct();
+    return {
+      message: menssageSuccessResponse('productos').posts,
+      data,
+    };
+  }
 }

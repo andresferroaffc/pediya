@@ -16,6 +16,8 @@ import {
 import { SelectOrderBy, validatExistException } from '../common/utils';
 import { GroupService } from '../group/group.service';
 import * as fs from 'fs';
+import * as XLSX from 'xlsx';
+import { TypeProduct } from '../common/enum';
 
 @Injectable()
 export class ProductService {
@@ -115,6 +117,25 @@ export class ProductService {
     validatExistException(data, 'producto', 'ValidateNoexist');
     return data;
   }
+
+    // Consultar un producto codigo
+    async findOneProductCode(code:string): Promise<Product> {
+      const data = await this.productRepo
+        .createQueryBuilder('product')
+        .innerJoinAndSelect('product.inventory_group_id', 'group')
+        .leftJoinAndSelect('product.commission_id', 'commission')
+        .leftJoinAndSelect('product.discount_id', 'discount')
+        .where({code:code})
+        .getOne()
+        .catch(async (error) => {
+          console.log(error);
+          throw new BadRequestException(
+            menssageErrorResponse('producto').getOneError,
+          );
+        });
+      validatExistException(data, 'producto', 'ValidateNoexist');
+      return data;
+    }
 
   // Modificar producto
   async update(id: number, dto: EditProductDto): Promise<Product> {
@@ -245,7 +266,7 @@ export class ProductService {
   // Eliminar producto
   async delete(id: number): Promise<boolean> {
     const data = await this.findOne(id);
-    
+
     await this.productRepo.delete({ id: data.id }).catch(async (error) => {
       console.log(error);
       throw new UnprocessableEntityException(
@@ -279,5 +300,50 @@ export class ProductService {
       }
     });
     return true;
+  }
+
+  // Cargar productos desde archivo excel
+  async changeProduct() {
+    let dataExcel;
+    let arrayDataProduct = [];
+    try {
+      const workbook = XLSX.readFile('./excel/Listado_productos.xlsx');
+      const workbookSheets = workbook.SheetNames;
+      const sheet = workbookSheets[0];
+      dataExcel = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+    } catch (Error) {
+      console.log(Error);
+      throw new BadRequestException(
+        'Error, al cargar el archivo Listado_productos.xlsx, verifica la ruta, el nombre o la extencion.',
+      );
+    }
+
+    for (const itemFila of dataExcel) {
+      const group = await this.groupService
+        .findOneGroup(itemFila['Grupo de inventario'])
+        .catch(async (value) => {
+          throw new BadRequestException(
+            `Error, El Grupo inventario ${itemFila['Grupo de inventario']}, no esta registrado en el sistema.`,
+          );
+        });
+      const type =
+        itemFila['Tipo'] === 'Producto'
+          ? TypeProduct.PRODUCTO
+          : TypeProduct.SERVICIO;
+      const status =
+        itemFila['Estado'].toUpperCase() === 'ACTIVO' ? true : false;
+      const inventoried =
+        itemFila['Inventariable'].toUpperCase() === 'SI' ? true : false;
+      const createProduct = this.productRepo.create({
+        type: type,
+        code: itemFila['Código'],
+        name: itemFila['Nombre'],
+        status: status,
+        stock: parseInt(itemFila['Saldo cantidades']),
+        price: parseFloat(itemFila['Precio de venta 1']),
+        inventoried: inventoried,
+        inventory_group_id:group
+      });
+    }
   }
 }
