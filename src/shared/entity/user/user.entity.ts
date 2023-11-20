@@ -36,9 +36,9 @@ export class User {
   status: boolean;
   @Column({ type: 'enum', enum: TypePerson })
   type_person: TypePerson;
-  @Column({ type: 'varchar', length: 2 })
+  @Column({ type: 'varchar', length: 20 })
   departament_code: string;
-  @Column({ type: 'varchar', length: 4 })
+  @Column({ type: 'varchar', length: 20 })
   city_code: string;
   @Column({ type: 'varchar', unique: true })
   user: string;

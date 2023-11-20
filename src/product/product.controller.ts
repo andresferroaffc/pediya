@@ -10,6 +10,8 @@ import {
   Query,
   DefaultValuePipe,
   Delete,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Roles } from '../common/decorator';
@@ -20,6 +22,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { EditProductDto, HttpResponse, ProductDto } from '../shared/dto';
 import { Product } from '../shared/entity';
 import { menssageSuccessResponse } from '../messages';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { renameImage } from '../helpers';
 
 @ApiTags('Product')
 @Controller('product')
@@ -38,7 +43,7 @@ export class ProductController {
 
   // Consultar un producto
   @Get('find/:id')
-  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findOne(
@@ -70,7 +75,7 @@ export class ProductController {
 
   // Consultar con paginacion
   @Get('paginate')
-  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
+  @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async paginate(
@@ -87,15 +92,29 @@ export class ProductController {
     return { message: menssageSuccessResponse('productos').get, data };
   }
 
-    // Eliminar producto
-    @Delete('delete-product/:id')
-    @Roles(RoleEnum.Administrador)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @ApiBearerAuth()
-    async deleteProduct(
-      @Param('id', ParseIntPipe) id: number,
-    ): Promise<HttpResponse<boolean>> {
-      const data = await this.serviceProduct.delete(id);
-      return { message: menssageSuccessResponse('producto').delete, data };
-    }
+  // Eliminar producto
+  @Delete('delete-product/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async deleteProduct(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<boolean>> {
+    const data = await this.serviceProduct.delete(id);
+    return { message: menssageSuccessResponse('producto').delete, data };
+  }
+
+  // Cargar imagen del producto
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './image-products',
+        filename: renameImage
+      }),
+    }),
+  )
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return file.filename;
+  }
 }

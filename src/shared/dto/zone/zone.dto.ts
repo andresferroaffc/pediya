@@ -10,7 +10,7 @@ export class ZoneDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  departament_cod: string;
+  departament_code: string;
 
   @ApiProperty()
   @IsString()
