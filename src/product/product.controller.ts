@@ -50,9 +50,6 @@ export class ProductController {
 
   // Consultar todos los productos
   @Get('all')
-  @Roles(RoleEnum.Administrador,RoleEnum.Cliente,RoleEnum.Vendedor)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<Product[]>> {
     const data = await this.serviceProduct.findAll();
     return { message: menssageSuccessResponse('productos').get, data };
