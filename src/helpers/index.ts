@@ -1,1 +1,2 @@
-export * from './image.herlpers';
+export * from './image.helpers';
+export * from './file.helpers';

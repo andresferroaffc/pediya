@@ -25,7 +25,7 @@ import { Product } from '../shared/entity';
 import { menssageSuccessResponse } from '../messages';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { fileFilter, renameImage } from '../helpers';
+import { fileFilter, fileFilterExcel, renameImage } from '../helpers';
 
 @ApiTags('Product')
 @Controller('product')
@@ -154,6 +154,17 @@ export class ProductController {
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './excel',
+        filename: (req, file, cb) => {
+          cb(null, (file.originalname = 'Listado_productos.xlsx'));
+        },
+      }),
+      fileFilter: fileFilterExcel,
+    }),
+  )
   async changeProduct() {
     const data = await this.serviceProduct.changeProduct();
     return {

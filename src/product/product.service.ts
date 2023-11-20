@@ -118,24 +118,23 @@ export class ProductService {
     return data;
   }
 
-    // Consultar un producto codigo
-    async findOneProductCode(code:string): Promise<Product> {
-      const data = await this.productRepo
-        .createQueryBuilder('product')
-        .innerJoinAndSelect('product.inventory_group_id', 'group')
-        .leftJoinAndSelect('product.commission_id', 'commission')
-        .leftJoinAndSelect('product.discount_id', 'discount')
-        .where({code:code})
-        .getOne()
-        .catch(async (error) => {
-          console.log(error);
-          throw new BadRequestException(
-            menssageErrorResponse('producto').getOneError,
-          );
-        });
-      validatExistException(data, 'producto', 'ValidateNoexist');
-      return data;
-    }
+  // Consultar un producto codigo
+  async findOneProductCode(code: string): Promise<Product> {
+    const data = await this.productRepo
+      .createQueryBuilder('product')
+      .innerJoinAndSelect('product.inventory_group_id', 'group')
+      .leftJoinAndSelect('product.commission_id', 'commission')
+      .leftJoinAndSelect('product.discount_id', 'discount')
+      .where({ code: code })
+      .getOne()
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('producto').getOneError,
+        );
+      });
+    return data;
+  }
 
   // Modificar producto
   async update(id: number, dto: EditProductDto): Promise<Product> {
@@ -306,6 +305,7 @@ export class ProductService {
   async changeProduct() {
     let dataExcel;
     let arrayDataProduct = [];
+    let create: Product;
     try {
       const workbook = XLSX.readFile('./excel/Listado_productos.xlsx');
       const workbookSheets = workbook.SheetNames;
@@ -326,24 +326,50 @@ export class ProductService {
             `Error, El Grupo inventario ${itemFila['Grupo de inventario']}, no esta registrado en el sistema.`,
           );
         });
-      const type =
-        itemFila['Tipo'] === 'Producto'
-          ? TypeProduct.PRODUCTO
-          : TypeProduct.SERVICIO;
-      const status =
-        itemFila['Estado'].toUpperCase() === 'ACTIVO' ? true : false;
-      const inventoried =
-        itemFila['Inventariable'].toUpperCase() === 'SI' ? true : false;
-      const createProduct = this.productRepo.create({
-        type: type,
-        code: itemFila['Código'],
-        name: itemFila['Nombre'],
-        status: status,
-        stock: parseInt(itemFila['Saldo cantidades']),
-        price: parseFloat(itemFila['Precio de venta 1']),
-        inventoried: inventoried,
-        inventory_group_id:group
-      });
+
+      const product = await this.findOneProductCode(itemFila['Código']);
+      try {
+        const type =
+          itemFila['Tipo'] === 'Producto'
+            ? TypeProduct.PRODUCTO
+            : TypeProduct.SERVICIO;
+        const status =
+          itemFila['Estado'].toUpperCase() === 'ACTIVO' ? true : false;
+        const inventoried =
+          itemFila['Inventariable'].toUpperCase() === 'SI' ? true : false;
+        const createProduct = this.productRepo.create({
+          type: type,
+          code: itemFila['Código'],
+          name: itemFila['Nombre'],
+          status: status,
+          stock: parseInt(itemFila['Saldo cantidades']),
+          price: parseFloat(itemFila['Precio de venta 1']),
+          inventoried: inventoried,
+          inventory_group_id: group,
+        });
+        if (product) {
+          const newStock = product.stock + createProduct.stock;
+          create = { ...product, ...createProduct };
+          create.stock = newStock;
+        } else {
+          create = { ...createProduct };
+        }
+        arrayDataProduct.push(create);
+      } catch (Error) {
+        console.log(Error);
+        throw new BadRequestException(
+          'Error, al cargar los productos, revisar que le infromación este completa y sea valida.',
+        );
+      }
     }
+
+    return await this.productRepo
+      .save(arrayDataProduct)
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('producto').postError,
+        );
+      });
   }
 }

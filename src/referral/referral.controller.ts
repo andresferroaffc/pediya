@@ -82,4 +82,14 @@ export class ReferralController {
     const data = await this.serviceReferral.findAll(idUser, role);
     return { message: menssageSuccessResponse('remisiones').get, data };
   }
+
+  // Consultar remisiones por fechas
+  @Post('excel-referral/:date')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async generateExcelReferral(@Param('date') date: string) {
+    const data = await this.serviceReferral.generateExcelReferral(date);
+    return { message: menssageSuccessResponse('excel de remisiones').post, data };
+  }
 }
