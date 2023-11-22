@@ -8,3 +8,4 @@ export * from './commission';
 export * from './discount';
 export * from './zone';
 export * from './payment-method';
+export * from './commission-history';

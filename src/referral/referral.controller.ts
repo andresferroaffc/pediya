@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Get,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
@@ -90,6 +91,55 @@ export class ReferralController {
   @ApiBearerAuth()
   async generateExcelReferral(@Param('date') date: string) {
     const data = await this.serviceReferral.generateExcelReferral(date);
-    return { message: menssageSuccessResponse('excel de remisiones').post, data };
+    return {
+      message: menssageSuccessResponse('excel de remisiones').post,
+      data,
+    };
+  }
+
+  // Consultar  remisiones por intervalo de tiempo
+  @Get('reports-date')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findReportsDate(
+    @Query('date-init') dateInit: string,
+    @Query('date-end') dateEnd: string,
+  ): Promise<HttpResponse<object>> {
+    const data = await this.serviceReferral.findReportsDate(dateInit, dateEnd);
+    return {
+      message: menssageSuccessResponse('remisiones por fecha').get,
+      data,
+    };
+  }
+
+  // Consultar  remisiones por vendedor
+  @Get('reports-seller/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findReportSeller(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<object>> {
+    const data = await this.serviceReferral.findReportsSeller(id);
+    return {
+      message: menssageSuccessResponse('remisiones por vendedor').get,
+      data,
+    };
+  }
+
+  // Consultar  remisiones por cliente
+  @Get('reports-customer/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findReportCustomer(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<HttpResponse<object>> {
+    const data = await this.serviceReferral.findReportsCustomer(id);
+    return {
+      message: menssageSuccessResponse('remisiones por cliente').get,
+      data,
+    };
   }
 }

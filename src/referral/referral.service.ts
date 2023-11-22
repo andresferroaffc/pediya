@@ -618,10 +618,10 @@ export class ReferralService {
             ? data[item].data.user_id.document
             : data[item].data.seller_id.document;
         const discount =
-        parseFloat(data[item].data.discount_zone_value) +
-        parseFloat(data[item].data.discount_amount_value) +
-        parseFloat(data[item].data.discount_products_value);
-        const amount = (value.quantity * value.unit_value)-discount;
+          parseFloat(data[item].data.discount_zone_value) +
+          parseFloat(data[item].data.discount_amount_value) +
+          parseFloat(data[item].data.discount_products_value);
+        const amount = value.quantity * value.unit_value - discount;
         ws.cell(positionColum, 1).string('1');
         ws.cell(positionColum, 2).number(parseInt(value.consecutive));
         ws.cell(positionColum, 3).string(data[item].data.user_id.document);
@@ -641,5 +641,63 @@ export class ReferralService {
 
     wb.write('./excel/Modelo de importacion de facturas.xlsx');
     return true;
+  }
+
+  // Consultar reporte por parametros
+
+  async findReferralParameter(where: object | string): Promise<object> {
+    let referralMany = [];
+    const referralExis = await this.referrralRepo
+      .createQueryBuilder('referral')
+      .leftJoinAndSelect('referral.seller_id', 'seller')
+      .leftJoinAndSelect('referral.user_id', 'user')
+      .innerJoinAndSelect('referral.payment_methods_id', 'payment_methods')
+      .leftJoinAndSelect('referral.zone_id', 'zone')
+      .where(where)
+      .orderBy('referral.date_of_elaboration', 'DESC')
+      .getMany();
+
+    for (const data of referralExis) {
+      delete data.zone_id.discount_id;
+      delete data.zone_id.commission_id;
+      const arrayProductReferral = await this.findPorductReferral(data.id);
+      referralMany.push({ data, arrayProductReferral });
+    }
+
+    return referralMany;
+  }
+
+  // Consultar reportes entre fechas
+  async findReportsDate(dateInit: string, dateEnd: string) {
+    if (!dateInit || !dateEnd) {
+      throw new BadRequestException(
+        'Error, debe ingresar la fecha inicial y la fecha final.',
+      );
+    }
+    const init = new Date(dateInit);
+    const end = new Date(dateEnd);
+
+    if (init > end) {
+      throw new BadRequestException(
+        'Error, la fecha inical no puede ser mayor a la final.',
+      );
+    }
+    const where = `referral.date_of_elaboration >= '${dateInit} 00:00:00' and referral.date_of_elaboration <= '${dateEnd} 23:59:59'`;
+    const data = await this.findReferralParameter(where);
+    return data;
+  }
+
+  // Consultar reportes por vendedor
+  async findReportsSeller(id: number) {
+    const where = { seller_id: { id: id } };
+    const data = await this.findReferralParameter(where);
+    return data;
+  }
+
+  // Consultar reportes por cliente
+  async findReportsCustomer(id: number) {
+    const where = { user_id: { id: id } };
+    const data = await this.findReferralParameter(where);
+    return data;
   }
 }

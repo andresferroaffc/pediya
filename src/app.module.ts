@@ -17,6 +17,7 @@ import { DiscountModule } from './discount/discount.module';
 import { PaymentMethodModule } from './payment-method/payment-method.module';
 import { ShoppingCartModule } from './shopping-cart/shopping-cart.module';
 import { LocaleModule } from './locale/locale.module';
+import { CommissionHistoryModule } from './commission-history/commission-history.module';
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { LocaleModule } from './locale/locale.module';
     DiscountModule,
     PaymentMethodModule,
     ShoppingCartModule,
-    LocaleModule
+    LocaleModule,
+    CommissionHistoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
