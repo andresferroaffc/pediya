@@ -9,3 +9,4 @@ export * from './discount';
 export * from './zone';
 export * from './payment-method';
 export * from './commission-history';
+export * from './shopping-cart';

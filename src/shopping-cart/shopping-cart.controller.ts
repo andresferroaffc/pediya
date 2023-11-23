@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
 import { RolesGuard } from '../auth/strategy/roles.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import {
+  EditCustomerDto,
   EditShoppingCartDto,
   ShoppingCartDto,
 } from '../shared/dto/shopping-cart';
@@ -109,6 +110,22 @@ export class ShoppingCartController {
     return {
       message: menssageSuccessResponse('producto del carrito de compras')
         .delete,
+      data,
+    };
+  }
+
+  // Modificar cliente del carrito de compras
+  @Patch('update-customer-cart')
+  @Roles(RoleEnum.Administrador, RoleEnum.Vendedor)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async updateCustomer(
+    @user('id') id: number,
+    @Body() dto: EditCustomerDto,
+  ): Promise<HttpResponse<ShoppingCart[]>> {
+    const data = await this.serviceShoppingCart.updateCustomer(id, dto);
+    return {
+      message: menssageSuccessResponse('producto del carrito de compras').put,
       data,
     };
   }

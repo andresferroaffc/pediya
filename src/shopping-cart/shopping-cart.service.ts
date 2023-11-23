@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product, ShoppingCart, User } from '../shared/entity';
 import { IsNull, Repository } from 'typeorm';
 import {
+  EditCustomerDto,
   EditShoppingCartDto,
   ShoppingCartDto,
 } from '../shared/dto/shopping-cart';
@@ -224,5 +225,47 @@ export class ShoppingCartService {
       );
     });
     return true;
+  }
+
+  // Modificar cliente del carrito de compras
+  async updateCustomer(
+    id: number,
+    dto: EditCustomerDto,
+  ): Promise<ShoppingCart[]> {
+    const dataExis = await this.shoppingCartRepo
+      .createQueryBuilder('cart')
+      .leftJoinAndSelect('cart.product_id', 'product')
+      .leftJoinAndSelect('cart.user_id', 'user')
+      .leftJoinAndSelect('cart.seller_id', 'seller')
+      .where({ seller_id: { id: id } })
+      .getMany()
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('productos del carrito de compras').getError,
+        );
+      });
+
+    validatExistException(
+      dataExis,
+      'productos del carrito de compras',
+      'ValidateNoexistMany',
+    );
+
+    const customerExis = await this.userRepo.findOneBy({
+      id: dto.customer,
+    });
+    validatExistException(customerExis, 'cliente', 'ValidateNoexist');
+
+    for (const data of dataExis) {
+      data.user_id = customerExis;
+    }
+
+    return await this.shoppingCartRepo.save(dataExis).catch(async (error) => {
+      console.log(error);
+      throw new BadRequestException(
+        menssageErrorResponse('productos del carrito de compras').putError,
+      );
+    });
   }
 }
