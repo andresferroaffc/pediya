@@ -137,7 +137,7 @@ export class ShoppingCartService {
   async findAll(id: number, role: string): Promise<ShoppingCart[]> {
     let where: object;
     if (role === RoleEnum.Cliente) {
-      where = { user_id: { id: id } };
+      where = { user_id: { id: id }, seller_id: IsNull() };
     } else {
       where = { seller_id: { id: id } };
     }
@@ -166,7 +166,11 @@ export class ShoppingCartService {
   ): Promise<ShoppingCart> {
     let where: object;
     if (role === RoleEnum.Cliente) {
-      where = { product_id: { id: id }, user_id: { id: idUser } };
+      where = {
+        product_id: { id: id },
+        user_id: { id: idUser },
+        seller_id: IsNull(),
+      };
     } else {
       where = { product_id: { id: id }, seller_id: { id: idUser } };
     }
