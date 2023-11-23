@@ -254,6 +254,8 @@ export class ShoppingCartService {
 
     const customerExis = await this.userRepo.findOneBy({
       id: dto.customer,
+      role: { name: RoleEnum.Cliente },
+      status: true,
     });
     validatExistException(customerExis, 'cliente', 'ValidateNoexist');
 
