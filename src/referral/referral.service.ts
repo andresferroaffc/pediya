@@ -426,10 +426,46 @@ export class ReferralService {
       .getOne();
     validatExistException(data, 'remision', 'ValidateNoexist');
     data.status = dto.status_referral;
-    return await this.referrralRepo.save({ ...data }).catch(async (error) => {
-      console.log(error);
-      throw new BadRequestException(menssageErrorResponse('remision').putError);
+    return await this.referrralRepo
+      .save({ ...data })
+      .then(async (value) => {
+        if (data.status === StatusReferralEnum.Cancelada) {
+          this.restoreStock(data.id);
+        }
+        return value;
+      })
+      .catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('remision').putError,
+        );
+      });
+  }
+
+  // Restaurar stock
+  async restoreStock(idReferral: number) {
+    const arrayProductReferral = await this.findPorductReferral(idReferral);
+    for (const data of arrayProductReferral) {
+      const newStock = data.product.stock + data.quantity;
+      await this.productRepo
+        .update(data.product.id, { stock: newStock })
+        .catch((Error) => {
+          console.log(Error);
+          throw new BadRequestException(
+            menssageErrorResponse('stock del producto').putError,
+          );
+        });
+    }
+
+    const commissionHistoryExis = await this.commissionHistoryRepo.findOneBy({
+      referral_id: { id: idReferral },
     });
+    if (commissionHistoryExis) {
+      commissionHistoryExis.status = TypeCommissionHistory.CANCELADO;
+      commissionHistoryExis.description =
+        'El pago de la comision se cancelo por que la remison fue cancelada.';
+      this.commissionHistoryRepo.save(commissionHistoryExis);
+    }
   }
 
   // Condicion para consulta de remisiones
@@ -524,13 +560,17 @@ export class ReferralService {
   // Consultar remisiones por fechas
   async findAllDate(date: string): Promise<object> {
     let referralMany = [];
+    const status = StatusReferralEnum.Cancelada;
     const referralExis = await this.referrralRepo
       .createQueryBuilder('referral')
       .leftJoinAndSelect('referral.seller_id', 'seller')
       .leftJoinAndSelect('referral.user_id', 'user')
       .innerJoinAndSelect('referral.payment_methods_id', 'payment_methods')
       .leftJoinAndSelect('referral.zone_id', 'zone')
-      .where('referral.date_of_elaboration LIKE :date', { date: `%${date}%` })
+      .where(
+        'referral.date_of_elaboration LIKE :date and  referral.status <> :status',
+        { date: `%${date}%`, status: status },
+      )
       .orderBy('referral.date_of_elaboration', 'DESC')
       .getMany();
 
