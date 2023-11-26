@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   EditUserDto,
   HttpResponse,
+  ResetPasswordAdminDto,
   ResetPasswordDto,
   UserDto,
 } from '../shared/dto';
@@ -122,15 +123,16 @@ export class UserController {
     };
   }
 
-  // Resetear contraseña
+  // Asignar contraseña como administrador
   @Patch('reset-password/:id')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async resetPassword(
     @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ResetPasswordAdminDto,
   ): Promise<HttpResponse<Object>> {
-    const data = await this.serviceUser.resetPassword(id);
+    const data = await this.serviceUser.resetPassword(id, dto);
     return {
       message: menssageSuccessResponse('contraseña').put,
       data,

@@ -8,8 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { SendemailService } from '../sendemail/sendemail.service';
-import { Role, User } from '../shared/entity';
+import { User } from '../shared/entity';
 import { AuthLoginDto, RestPassworDto } from '../shared/dto';
 import { menssageErrorResponse } from '../messages';
 import { validatExistException } from '../common/utils';
@@ -19,8 +18,8 @@ import { templateResetpass } from '../sendemail/templates';
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    private emailService: SendemailService,
-    @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
   ) {}
 
   // Metodo de validacion de credenciales y logueo
@@ -32,7 +31,13 @@ export class AuthService {
     // Get user information
     const userDetails = await this.usersRepo
       .createQueryBuilder('user')
-      .select(['user.id', 'user.user', 'user.email', 'user.password','user.is_dropshipping'])
+      .select([
+        'user.id',
+        'user.user',
+        'user.email',
+        'user.password',
+        'user.is_dropshipping',
+      ])
       .innerJoinAndSelect('user.role', 'role')
       .where({
         user: userDTO.user,
@@ -63,7 +68,7 @@ export class AuthService {
               id: userDetails.id,
               user: userDetails.user,
               role: userDetails.role.name,
-              dropshipping: userDetails.is_dropshipping
+              dropshipping: userDetails.is_dropshipping,
             },
             { expiresIn: process.env.JWT_EXPIRES_IN },
           ),
@@ -85,14 +90,6 @@ export class AuthService {
     const linkReset = uuidv4();
     await this.usersRepo
       .update({ id: user.id }, { reset_password_token: linkReset })
-      .then(() => {
-        const html = templateResetpass(linkReset);
-        this.emailService
-          .sendemail('Olvido su contraseña', user.email, html)
-          .catch((Error) => {
-            console.log(Error);
-          });
-      })
       .catch(async (Error) => {
         throw new BadRequestException('Error', Error);
       });

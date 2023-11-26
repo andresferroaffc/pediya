@@ -44,6 +44,8 @@ export class User {
   user: string;
   @Column({ type: 'boolean', default: false })
   is_dropshipping: boolean;
+  @Column({ type: 'boolean', default: false })
+  is_default_seller: boolean;
   @Column({ type: 'varchar', unique: true, nullable: true, select: false })
   reset_password_token: string;
   @ManyToOne(() => Role, (role) => role.user)

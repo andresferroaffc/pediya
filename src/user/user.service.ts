@@ -5,22 +5,21 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SelectOrderBy, validatExistException } from '../common/utils';
-import { SendemailService } from '../sendemail/sendemail.service';
 import { menssageErrorResponse } from '../messages';
 import { Repository } from 'typeorm';
 import { Role, TypeDocument, User } from '../shared/entity';
-import { EditUserDto, ResetPasswordDto, UserDto } from '../shared/dto';
+import {
+  EditUserDto,
+  ResetPasswordAdminDto,
+  ResetPasswordDto,
+  UserDto,
+} from '../shared/dto';
 import {
   IPaginationOptions,
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
-import {
-  templateChagePasswordUser,
-  templateCreateUser,
-} from '../sendemail/templates';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import { RoleEnum } from 'src/common/enum';
 
 @Injectable()
@@ -32,7 +31,6 @@ export class UserService {
     private roleRepo: Repository<Role>,
     @InjectRepository(TypeDocument)
     private typeDocumentRepo: Repository<TypeDocument>,
-    private ServiceSemail: SendemailService,
   ) {}
 
   // Crear usuario
@@ -43,7 +41,6 @@ export class UserService {
         message: 'El atributo ya está en uso',
         attributeExist,
       });
-    const password = dto.password;
     dto.password = bcrypt.hashSync(dto.password, 10);
     const rolExis = await this.roleRepo.findOneBy({
       name: dto.role,
@@ -58,6 +55,19 @@ export class UserService {
         'Error, solo los usuarios con rol vendedor pueden ser dropshipping',
       );
     }
+
+    // Validar si ya exste un vendedor por defecto
+    if (dto.is_default_seller && dto.is_default_seller === true) {
+      const is_default_seller_exis = await this.userRepo.findOneBy({
+        is_default_seller: true,
+      });
+      validatExistException(
+        is_default_seller_exis,
+        'vendedor por defecto para los clientes',
+        'validatExistOne',
+      );
+    }
+
     const newData = this.userRepo.create({
       ...dto,
       role: rolExis,
@@ -67,12 +77,6 @@ export class UserService {
     return await this.userRepo
       .save(newData)
       .then(async (data) => {
-        const html = templateCreateUser(dto.user, password);
-        this.ServiceSemail.sendemail('Usuario creado', data.email, html).catch(
-          (error) => {
-            console.log(error);
-          },
-        );
         delete data.password;
         delete data.reset_password_token;
         return data;
@@ -127,6 +131,7 @@ export class UserService {
     let roleValue = data.role;
     let typeDoc = data.type_document_id;
     let type_person = data.type_person;
+    let is_default_seller: boolean = false;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
@@ -157,6 +162,17 @@ export class UserService {
 
     if (dto.typePerson) {
       type_person = dto.typePerson;
+    }
+
+    if (dto.is_default_seller && dto.is_default_seller === true) {
+      const is_default_seller_exis = await this.userRepo.findOneBy({
+        is_default_seller: true,
+      });
+      validatExistException(
+        is_default_seller_exis,
+        'vendedor por defecto para los clientes',
+        'validatExistOne',
+      );
     }
 
     const newData = this.userRepo.create({
@@ -313,29 +329,13 @@ export class UserService {
     if (isValid) {
       const newPasswordBcrypt = bcrypt.hashSync(dto.newpassword, 10);
       data.password = newPasswordBcrypt;
-      return await this.userRepo
-        .save(data)
-        .then((value) => {
-          const html = templateChagePasswordUser(value.user, dto.newpassword);
-          this.ServiceSemail.sendemail(
-            'Cambio de contraseña',
-            value.email,
-            html,
-          ).catch((error) => {
-            console.log(error);
-          });
-          return {
-            message:
-              'Se enviaran las nuevas credenciales al siguiente correo ' +
-              value.email,
-          };
-        })
-        .catch(async (error) => {
-          console.log(error);
-          throw new BadRequestException(
-            menssageErrorResponse('usuario').postError,
-          );
-        });
+      await this.userRepo.save(data).catch(async (error) => {
+        console.log(error);
+        throw new BadRequestException(
+          menssageErrorResponse('usuario').postError,
+        );
+      });
+      return true;
     } else {
       throw new BadRequestException({
         message: 'La contraseña antigua es incorrecta',
@@ -344,8 +344,8 @@ export class UserService {
     }
   }
 
-  // asignar Contraseña random solo por el administrador
-  async resetPassword(id: number) {
+  // Asignar Contraseña como administrador
+  async resetPassword(id: number, dto: ResetPasswordAdminDto) {
     const data = await this.userRepo
       .findOne({
         where: { id: id, status: true },
@@ -358,11 +358,10 @@ export class UserService {
         );
       });
     validatExistException(data, 'usuario', 'ValidateNoexist');
-    const newPassword = uuidv4();
-    const dto = new ResetPasswordDto();
-    dto.oldpassword = data.password;
-    dto.newpassword = newPassword;
-    return await this.changePassword(dto, id, 'RESET');
+    const dataPass = new ResetPasswordDto();
+    dataPass.oldpassword = data.password;
+    dataPass.newpassword = dto.newpassword;
+    return await this.changePassword(dataPass, id, 'RESET');
   }
 
   // Eliminar usuario

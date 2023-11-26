@@ -93,4 +93,9 @@ export class UserDto {
   @IsBoolean()
   @IsOptional()
   is_dropshipping: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  is_default_seller: boolean;
 }
