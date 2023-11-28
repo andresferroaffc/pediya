@@ -584,11 +584,8 @@ export class ReferralService {
   }
 
   // Generar archivo excel de remisiones por dia
-  async generateExcelReferral(date: string, dataReferral?) {
-    let data = await this.findAllDate(date);
-    if (dataReferral) {
-      data = dataReferral;
-    }
+  async generateExcelReferral(date: string) {
+    const data = await this.findAllDate(date);
     const userIsDefault = await this.userRepo.findOneBy({
       is_default_seller: true,
     });
@@ -672,11 +669,9 @@ export class ReferralService {
               data[item].data.seller_id === null
                 ? userIsDefault.document
                 : data[item].data.seller_id.document;
-            const discount =
-              parseFloat(data[item].data.discount_zone_value) +
-              parseFloat(data[item].data.discount_amount_value) +
-              parseFloat(data[item].data.discount_products_value);
-            const amount = value.quantity * value.unit_value - discount;
+            const amount =
+              value.quantity * value.unit_value -
+              parseFloat(value.discount_value);
             ws.cell(positionColum, 1).string('1');
             ws.cell(positionColum, 2).number(parseInt(value.consecutive));
             ws.cell(positionColum, 3).string(data[item].data.user_id.document);
@@ -685,13 +680,13 @@ export class ReferralService {
             ws.cell(positionColum, 16).string(documentSeller);
             ws.cell(positionColum, 18).number(value.quantity);
             ws.cell(positionColum, 19).number(parseFloat(value.unit_value));
-            ws.cell(positionColum, 20).number(discount);
+            ws.cell(positionColum, 20).number(parseFloat(value.discount_value));
             ws.cell(positionColum, 28).number(
               data[item].data.payment_methods_id.id,
             );
             ws.cell(positionColum, 29).number(amount);
+            positionColum = positionColum + 1;
           }
-          positionColum = positionColum + 1;
         }
 
         wb.write('./excel/Modelo de importacion de facturas.xlsx');
@@ -772,15 +767,127 @@ export class ReferralService {
     return data;
   }
 
+  // Generar excel de reporte por intervalo de fechas
   async generateExcelReferralDownloadDate(dateInit: string, dateEnd: string) {
-    const date = new Date().toLocaleString();
     if (!dateInit || !dateEnd) {
       throw new BadRequestException(
         'Error, debe ingresar la fecha inicial y la fecha final.',
       );
     }
-
     const data = await this.findReportsDate(dateInit, dateEnd);
-    return await this.generateExcelReferral(date, data);
+    return await this.excelReports(data);
+  }
+
+  // Generar excel de reporte por vendedor
+  async generateExcelReferralDownloadSeller(id: number) {
+    const data = await this.findReportsSeller(id);
+    return await this.excelReports(data);
+  }
+
+  // Generar excel de reporte por cliente
+  async generateExcelReferralDownloadCustomer(id: number) {
+    const data = await this.findReportsCustomer(id);
+    return await this.excelReports(data);
+  }
+
+  // Generar excel para reportes
+  async excelReports(data: {}) {
+    const userIsDefault = await this.userRepo.findOneBy({
+      is_default_seller: true,
+    });
+    validatExistException(
+      userIsDefault,
+      'vendedor por defecto',
+      'ValidateNoexist',
+    );
+    try {
+      return new Promise(async (resolve, reject) => {
+        var wb = new xl.Workbook();
+
+        var style2 = wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            fgColor: '#0E72CA', // Código de color rojo
+          },
+          font: {
+            color: '#FFFFFF',
+            size: 11,
+          },
+        });
+
+        // Hoja de trabajo
+        var ws = wb.addWorksheet('Hoja1');
+        ws.cell(1, 1).string('Consecutivo').style(style2);
+        ws.cell(1, 2).string('Fecha de elaboración  ').style(style2);
+        ws.cell(1, 3).string('Nombre cliente').style(style2);
+        ws.cell(1, 4).string('Identificación cliente').style(style2);
+        ws.cell(1, 5).string('Nombre Vendedor').style(style2);
+        ws.cell(1, 6).string('Identificación vendedor').style(style2);
+        ws.cell(1, 7).string('Codigo producto').style(style2);
+        ws.cell(1, 8).string('Cantidad producto').style(style2);
+        ws.cell(1, 9).string('Valor unitario').style(style2);
+        ws.cell(1, 10).string('Valor Descuento producto').style(style2);
+        ws.cell(1, 11).string('Valor comision producto').style(style2);
+        ws.cell(1, 12).string('Forma de pago').style(style2);
+        ws.cell(1, 13).string('Valor Pago').style(style2);
+
+        let positionColum = 2;
+
+        for (const item in data) {
+          for (const value of data[item].arrayProductReferral) {
+            const dateReferral = new Date(data[item].data.date_of_elaboration);
+            const newdateReferral = format(dateReferral, 'yyyy-MM-dd');
+            const documentSeller =
+              data[item].data.seller_id === null
+                ? ''
+                : data[item].data.seller_id.document;
+            const nameSeller =
+              data[item].data.seller_id === null
+                ? ''
+                : data[item].data.seller_id.names +
+                  data[item].data.seller_id.surnames;
+            const amount =
+              value.quantity * value.unit_value -
+              parseFloat(value.discount_value);
+            ws.cell(positionColum, 1).string(data[item].data.consecutive);
+            ws.cell(positionColum, 2).date(newdateReferral.toLocaleString());
+            ws.cell(positionColum, 3).string(
+              data[item].data.user_id.names + data[item].data.user_id.surnames,
+            );
+            ws.cell(positionColum, 4).string(data[item].data.user_id.document);
+            ws.cell(positionColum, 5).string(nameSeller);
+            ws.cell(positionColum, 6).string(documentSeller);
+            ws.cell(positionColum, 7).string(value.product.code);
+            ws.cell(positionColum, 8).number(value.quantity);
+            ws.cell(positionColum, 9).number(parseFloat(value.unit_value));
+            ws.cell(positionColum, 10).string(value.discount_value);
+            ws.cell(positionColum, 11).string(value.commission_value);
+            ws.cell(positionColum, 12).string(
+              data[item].data.payment_methods_id.name,
+            );
+            ws.cell(positionColum, 13).number(amount);
+            positionColum = positionColum + 1;
+          }
+        }
+
+        wb.write('./excel/reporte.xlsx');
+        const path = './excel/reporte.xlsx';
+
+        // Escribir el archivo Excel de forma asíncrona
+        wb.write(path, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(path);
+          }
+        });
+      });
+    } catch (Error) {
+      console.log(Error);
+      throw new BadRequestException(
+        'Error, al generar el excel de remisiones.',
+      );
+    }
   }
 }

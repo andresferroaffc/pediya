@@ -87,7 +87,7 @@ export class ReferralController {
     return { message: menssageSuccessResponse('remisiones').get, data };
   }
 
-  // Consultar remisiones por fecha
+  // Generar excel de remisiones por fecha
   @Post('excel-referral/:date')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -191,8 +191,10 @@ export class ReferralController {
     @Res() res: Response,
   ) {
     try {
-      const date = new Date().toLocaleString();
-      const data = await this.serviceReferral.generateExcelReferralDownloadDate(dateInit,dateEnd);
+      const data = await this.serviceReferral.generateExcelReferralDownloadDate(
+        dateInit,
+        dateEnd,
+      );
 
       // Configurar las cabeceras HTTP para la descarga
       res.setHeader(
@@ -201,7 +203,103 @@ export class ReferralController {
       );
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename=Modelo_de_importacion_de_facturas_${date}.xlsx`,
+        `attachment; filename=reporte_fechas_${dateInit}_x_${dateEnd}.xlsx`,
+      );
+
+      // Crear un stream de lectura del archivo Excel y enviarlo como respuesta
+      if (typeof data === 'string') {
+        const fileStream = fs.createReadStream(data);
+        fileStream.pipe(res);
+
+        // Eliminar el archivo después de enviarlo para evitar acumulación de archivos
+        fileStream.on('end', () => {
+          fs.unlinkSync(data);
+        });
+
+        // Manejar errores
+        fileStream.on('error', (err) => {
+          console.error(err);
+          res.status(500).send('Error al descargar el archivo');
+        });
+      } else {
+        console.error('Error: El tipo de data no es una cadena (string).');
+        res.status(500).send('Error al descargar el archivo');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error al generar el archivo Excel');
+    }
+  }
+
+  // Descargar excel de reporte por vendedor
+  @Post('excel-referral-download-seller/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async generateExcelReferraldownloadSeller(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const data =
+        await this.serviceReferral.generateExcelReferralDownloadSeller(id);
+
+      // Configurar las cabeceras HTTP para la descarga
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=reporte_vendedor_${id}.xlsx`,
+      );
+
+      // Crear un stream de lectura del archivo Excel y enviarlo como respuesta
+      if (typeof data === 'string') {
+        const fileStream = fs.createReadStream(data);
+        fileStream.pipe(res);
+
+        // Eliminar el archivo después de enviarlo para evitar acumulación de archivos
+        fileStream.on('end', () => {
+          fs.unlinkSync(data);
+        });
+
+        // Manejar errores
+        fileStream.on('error', (err) => {
+          console.error(err);
+          res.status(500).send('Error al descargar el archivo');
+        });
+      } else {
+        console.error('Error: El tipo de data no es una cadena (string).');
+        res.status(500).send('Error al descargar el archivo');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error al generar el archivo Excel');
+    }
+  }
+
+  // Descargar excel de reporte por cliente
+  @Post('excel-referral-download-customer/:id')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async generateExcelReferraldownloadCustomer(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const data =
+        await this.serviceReferral.generateExcelReferralDownloadCustomer(id);
+
+      // Configurar las cabeceras HTTP para la descarga
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=reporte_customer_${id}.xlsx`,
       );
 
       // Crear un stream de lectura del archivo Excel y enviarlo como respuesta
