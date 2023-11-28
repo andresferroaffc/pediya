@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Get,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
@@ -21,6 +22,8 @@ import {
 } from '../shared/dto';
 import { ReferralService } from './referral.service';
 import { menssageSuccessResponse } from '../messages';
+import * as fs from 'fs';
+import { Response } from 'express';
 
 @Controller('referral')
 export class ReferralController {
@@ -84,17 +87,51 @@ export class ReferralController {
     return { message: menssageSuccessResponse('remisiones').get, data };
   }
 
-  // Consultar remisiones por fechas
+  // Consultar remisiones por fecha
   @Post('excel-referral/:date')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  async generateExcelReferral(@Param('date') date: string) {
-    const data = await this.serviceReferral.generateExcelReferral(date);
-    return {
-      message: menssageSuccessResponse('excel de remisiones').post,
-      data,
-    };
+  async generateExcelReferral(
+    @Param('date') date: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await this.serviceReferral.generateExcelReferral(date);
+
+      // Configurar las cabeceras HTTP para la descarga
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=Modelo_de_importacion_de_facturas_${date}.xlsx`,
+      );
+
+      // Crear un stream de lectura del archivo Excel y enviarlo como respuesta
+      if (typeof data === 'string') {
+        const fileStream = fs.createReadStream(data);
+        fileStream.pipe(res);
+
+        // Eliminar el archivo después de enviarlo para evitar acumulación de archivos
+        fileStream.on('end', () => {
+          fs.unlinkSync(data);
+        });
+
+        // Manejar errores
+        fileStream.on('error', (err) => {
+          console.error(err);
+          res.status(500).send('Error al descargar el archivo');
+        });
+      } else {
+        console.error('Error: El tipo de data no es una cadena (string).');
+        res.status(500).send('Error al descargar el archivo');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error al generar el archivo Excel');
+    }
   }
 
   // Consultar  remisiones por intervalo de tiempo
@@ -141,5 +178,54 @@ export class ReferralController {
       message: menssageSuccessResponse('remisiones por cliente').get,
       data,
     };
+  }
+
+  // Descargar excel de reporte por fechas
+  @Post('excel-referral-download-date')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async generateExcelReferraldownloadDate(
+    @Query('date-init') dateInit: string,
+    @Query('date-end') dateEnd: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const date = new Date().toLocaleString();
+      const data = await this.serviceReferral.generateExcelReferralDownloadDate(dateInit,dateEnd);
+
+      // Configurar las cabeceras HTTP para la descarga
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=Modelo_de_importacion_de_facturas_${date}.xlsx`,
+      );
+
+      // Crear un stream de lectura del archivo Excel y enviarlo como respuesta
+      if (typeof data === 'string') {
+        const fileStream = fs.createReadStream(data);
+        fileStream.pipe(res);
+
+        // Eliminar el archivo después de enviarlo para evitar acumulación de archivos
+        fileStream.on('end', () => {
+          fs.unlinkSync(data);
+        });
+
+        // Manejar errores
+        fileStream.on('error', (err) => {
+          console.error(err);
+          res.status(500).send('Error al descargar el archivo');
+        });
+      } else {
+        console.error('Error: El tipo de data no es una cadena (string).');
+        res.status(500).send('Error al descargar el archivo');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error al generar el archivo Excel');
+    }
   }
 }
