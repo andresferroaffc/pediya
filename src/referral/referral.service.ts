@@ -9,13 +9,13 @@ import {
   Product,
   Referral,
   ShoppingCart,
+  User,
   Zone,
 } from '../shared/entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ProductReferral } from '../shared/entity';
 import {
-  ParametersEnum,
   RoleEnum,
   TypeCommission,
   TypeCommissionHistory,
@@ -48,17 +48,15 @@ export class ReferralService {
     private parameterRepo: Repository<Parameter>,
     @InjectRepository(CommissionHistory)
     private commissionHistoryRepo: Repository<CommissionHistory>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
   ) {}
 
   // Consultar parametros
-  async findOneParamete(name: string): Promise<Parameter> {
-    const parameterExis = await this.parameterRepo.findOneBy({ name: name });
-    validatExistException(
-      parameterExis,
-      `parametro ${name} `,
-      'ValidateNoexist',
-    );
-    return parameterExis;
+  async findOneParamete(): Promise<Parameter> {
+    const parameterExis = await this.parameterRepo.find();
+    validatExistException(parameterExis, `parametro`, 'ValidateNoexistMany');
+    return parameterExis[0];
   }
 
   // Crear remision
@@ -192,14 +190,13 @@ export class ReferralService {
       amountValue - (discountAmount + discountZone + discountProductGeneral);
 
     // Validar si el vendedor de la empresa puede resivir comisiones
-    const validateCommissionVen = await this.findOneParamete(
-      ParametersEnum.VendedoresComisiones,
-    );
+    const validateCommissionVen = await this.findOneParamete();
 
     // Comisiones
     if (
       role !== RoleEnum.Cliente &&
-      (dropshipping === true || validateCommissionVen.status === true)
+      (dropshipping === true ||
+        validateCommissionVen.seller_commission === true)
     ) {
       // Consultar comision general o comison por defecto
       const comissionAmountExisGeneral = await this.commissionRepo.findOneBy({
@@ -274,7 +271,7 @@ export class ReferralService {
       referralSave,
       role,
       dropshipping,
-      validateCommissionVen.status,
+      validateCommissionVen.seller_commission,
     );
 
     // Eliminar productos del carrito de compras
@@ -289,7 +286,8 @@ export class ReferralService {
 
     if (
       role !== RoleEnum.Cliente &&
-      (dropshipping === true || validateCommissionVen.status === true)
+      (dropshipping === true ||
+        validateCommissionVen.seller_commission === true)
     ) {
       // Insertar registro de comision en el hsitorial
       const commissionHistory = this.commissionHistoryRepo.create({
@@ -587,100 +585,116 @@ export class ReferralService {
   // Generar archivo excel de remisiones por dia
   async generateExcelReferral(date: string) {
     const data = await this.findAllDate(date);
-
-    var wb = new xl.Workbook();
-
-    // Estilo de las celdas
-    var style = wb.createStyle({
-      fill: {
-        type: 'pattern',
-        patternType: 'solid',
-        fgColor: '#FF1F1F', // Código de color rojo
-      },
-      font: {
-        color: '#FFFFFF',
-        size: 11,
-      },
+    const userIsDefault = await this.userRepo.findOneBy({
+      is_default_seller: true,
     });
+    validatExistException(
+      userIsDefault,
+      'vendedor por defecto',
+      'ValidateNoexist',
+    );
+    try {
+      var wb = new xl.Workbook();
 
-    var style2 = wb.createStyle({
-      fill: {
-        type: 'pattern',
-        patternType: 'solid',
-        fgColor: '#0E72CA', // Código de color rojo
-      },
-      font: {
-        color: '#FFFFFF',
-        size: 11,
-      },
-    });
+      // Estilo de las celdas
+      var style = wb.createStyle({
+        fill: {
+          type: 'pattern',
+          patternType: 'solid',
+          fgColor: '#FF1F1F', // Código de color rojo
+        },
+        font: {
+          color: '#FFFFFF',
+          size: 11,
+        },
+      });
 
-    // Hoja de trabajo
-    var ws = wb.addWorksheet('Hoja1');
-    ws.cell(1, 1).string('Tipo de comprobante').style(style);
-    ws.cell(1, 2).string('Consecutivo').style(style);
-    ws.cell(1, 3).string('Identificación tercero').style(style);
-    ws.cell(1, 4).string('Sucursal').style(style2);
-    ws.cell(1, 5).string('Código centro/subcentro de costos').style(style2);
-    ws.cell(1, 6).string('Fecha de elaboración  ').style(style);
-    ws.cell(1, 7).string('Sigla Moneda').style(style2);
-    ws.cell(1, 8).string('Tasa de cambio').style(style2);
-    ws.cell(1, 9).string('Nombre contacto').style(style2);
-    ws.cell(1, 10).string('Email Contacto').style(style2);
-    ws.cell(1, 11).string('Orden de compra').style(style2);
-    ws.cell(1, 12).string('Orden de entrega').style(style2);
-    ws.cell(1, 13).string('Fecha orden de entrega').style(style2);
-    ws.cell(1, 14).string('Código producto').style(style).style(style2);
-    ws.cell(1, 15).string('Descripción producto').style(style2);
-    ws.cell(1, 16).string('Identificación vendedor').style(style);
-    ws.cell(1, 17).string('Código de Bodega').style(style2);
-    ws.cell(1, 18).string('Cantidad producto').style(style);
-    ws.cell(1, 19).string('Valor unitario').style(style);
-    ws.cell(1, 20).string('Valor Descuento').style(style2);
-    ws.cell(1, 21).string('Base AIU').style(style2);
-    ws.cell(1, 22).string('Identificación ingreso para terceros').style(style2);
-    ws.cell(1, 23).string('Código impuesto cargo').style(style2);
-    ws.cell(1, 24).string('Código impuesto cargo dos').style(style2);
-    ws.cell(1, 25).string('Código impuesto retención').style(style2);
-    ws.cell(1, 26).string('Código ReteICA').style(style2);
-    ws.cell(1, 27).string('Código ReteIVA').style(style2);
-    ws.cell(1, 28).string('Código forma de pago').style(style);
-    ws.cell(1, 29).string('Valor Forma de Pago').style(style);
-    ws.cell(1, 30).string('Fecha Vencimiento').style(style2);
-    ws.cell(1, 31).string('Observaciones').style(style2);
+      var style2 = wb.createStyle({
+        fill: {
+          type: 'pattern',
+          patternType: 'solid',
+          fgColor: '#0E72CA', // Código de color rojo
+        },
+        font: {
+          color: '#FFFFFF',
+          size: 11,
+        },
+      });
 
-    let positionColum = 2;
+      // Hoja de trabajo
+      var ws = wb.addWorksheet('Hoja1');
+      ws.cell(1, 1).string('Tipo de comprobante').style(style);
+      ws.cell(1, 2).string('Consecutivo').style(style);
+      ws.cell(1, 3).string('Identificación tercero').style(style);
+      ws.cell(1, 4).string('Sucursal').style(style2);
+      ws.cell(1, 5).string('Código centro/subcentro de costos').style(style2);
+      ws.cell(1, 6).string('Fecha de elaboración  ').style(style);
+      ws.cell(1, 7).string('Sigla Moneda').style(style2);
+      ws.cell(1, 8).string('Tasa de cambio').style(style2);
+      ws.cell(1, 9).string('Nombre contacto').style(style2);
+      ws.cell(1, 10).string('Email Contacto').style(style2);
+      ws.cell(1, 11).string('Orden de compra').style(style2);
+      ws.cell(1, 12).string('Orden de entrega').style(style2);
+      ws.cell(1, 13).string('Fecha orden de entrega').style(style2);
+      ws.cell(1, 14).string('Código producto').style(style).style(style2);
+      ws.cell(1, 15).string('Descripción producto').style(style2);
+      ws.cell(1, 16).string('Identificación vendedor').style(style);
+      ws.cell(1, 17).string('Código de Bodega').style(style2);
+      ws.cell(1, 18).string('Cantidad producto').style(style);
+      ws.cell(1, 19).string('Valor unitario').style(style);
+      ws.cell(1, 20).string('Valor Descuento').style(style2);
+      ws.cell(1, 21).string('Base AIU').style(style2);
+      ws.cell(1, 22)
+        .string('Identificación ingreso para terceros')
+        .style(style2);
+      ws.cell(1, 23).string('Código impuesto cargo').style(style2);
+      ws.cell(1, 24).string('Código impuesto cargo dos').style(style2);
+      ws.cell(1, 25).string('Código impuesto retención').style(style2);
+      ws.cell(1, 26).string('Código ReteICA').style(style2);
+      ws.cell(1, 27).string('Código ReteIVA').style(style2);
+      ws.cell(1, 28).string('Código forma de pago').style(style);
+      ws.cell(1, 29).string('Valor Forma de Pago').style(style);
+      ws.cell(1, 30).string('Fecha Vencimiento').style(style2);
+      ws.cell(1, 31).string('Observaciones').style(style2);
 
-    for (const item in data) {
-      for (const value of data[item].arrayProductReferral) {
-        const documentSeller =
-          data[item].data.seller_id === null
-            ? data[item].data.user_id.document
-            : data[item].data.seller_id.document;
-        const discount =
-          parseFloat(data[item].data.discount_zone_value) +
-          parseFloat(data[item].data.discount_amount_value) +
-          parseFloat(data[item].data.discount_products_value);
-        const amount = value.quantity * value.unit_value - discount;
-        ws.cell(positionColum, 1).string('1');
-        ws.cell(positionColum, 2).number(parseInt(value.consecutive));
-        ws.cell(positionColum, 3).string(data[item].data.user_id.document);
-        ws.cell(positionColum, 6).date(data[item].data.date_of_elaboration);
-        ws.cell(positionColum, 14).string(value.product.code);
-        ws.cell(positionColum, 16).string(documentSeller);
-        ws.cell(positionColum, 18).number(value.quantity);
-        ws.cell(positionColum, 19).number(parseFloat(value.unit_value));
-        ws.cell(positionColum, 20).number(discount);
-        ws.cell(positionColum, 28).number(
-          data[item].data.payment_methods_id.id,
-        );
-        ws.cell(positionColum, 29).number(amount);
+      let positionColum = 2;
+
+      for (const item in data) {
+        for (const value of data[item].arrayProductReferral) {
+          const documentSeller =
+            data[item].data.seller_id === null
+              ? userIsDefault.document
+              : data[item].data.seller_id.document;
+          const discount =
+            parseFloat(data[item].data.discount_zone_value) +
+            parseFloat(data[item].data.discount_amount_value) +
+            parseFloat(data[item].data.discount_products_value);
+          const amount = value.quantity * value.unit_value - discount;
+          ws.cell(positionColum, 1).string('1');
+          ws.cell(positionColum, 2).number(parseInt(value.consecutive));
+          ws.cell(positionColum, 3).string(data[item].data.user_id.document);
+          ws.cell(positionColum, 6).date(data[item].data.date_of_elaboration);
+          ws.cell(positionColum, 14).string(value.product.code);
+          ws.cell(positionColum, 16).string(documentSeller);
+          ws.cell(positionColum, 18).number(value.quantity);
+          ws.cell(positionColum, 19).number(parseFloat(value.unit_value));
+          ws.cell(positionColum, 20).number(discount);
+          ws.cell(positionColum, 28).number(
+            data[item].data.payment_methods_id.id,
+          );
+          ws.cell(positionColum, 29).number(amount);
+        }
+        positionColum = positionColum + 1;
       }
-      positionColum = positionColum + 1;
-    }
 
-    wb.write('./excel/Modelo de importacion de facturas.xlsx');
-    return true;
+      wb.write('./excel/Modelo de importacion de facturas.xlsx');
+      return true;
+    } catch (Error) {
+      console.log(Error);
+      throw new BadRequestException(
+        'Error, al generar el excel de remisiones.',
+      );
+    }
   }
 
   // Consultar reporte por parametros

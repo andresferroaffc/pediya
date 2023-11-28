@@ -4,10 +4,16 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class Parameter {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ nullable: false, unique: true, length: 80 })
-  name: string;
-  @Column({ nullable: true, length: 150 })
+  @Column({ nullable: true, type: 'boolean', default: false })
+  seller_commission: boolean;
+  @Column({ nullable: true, type: 'varchar', length: 100 })
+  name_enterprise: string;
+  @Column({ nullable: true, type: 'varchar', length: 200 })
+  address: string;
+  @Column({ nullable: true, type: 'varchar', length: 15 })
+  phone: string;
+  @Column({ nullable: true, type: 'varchar', length: 40 })
+  email: string;
+  @Column({ nullable: true, type: 'varchar', length: 200 })
   description: string;
-  @Column({ type: 'boolean', nullable: true, default: false })
-  status: boolean;
 }

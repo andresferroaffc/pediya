@@ -13,7 +13,7 @@ import { menssageSuccessResponse } from '../messages';
 export class TypeDocumentController {
     constructor(private readonly serviceTypeDocument:TypeDocumentService) {}
 
-      // Crear tipo de documento
+  // Crear tipo de documento
   @Post('create-type-document')
   @Roles(RoleEnum.Administrador)
   @UseGuards(JwtAuthGuard, RolesGuard)

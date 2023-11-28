@@ -13,7 +13,7 @@ import {
   ShoppingCart,
   User,
   Zone,
-} from 'src/shared/entity';
+} from '../shared/entity';
 import { ProductReferral } from '../shared/entity/product-referral';
 
 @Module({
@@ -30,6 +30,7 @@ import { ProductReferral } from '../shared/entity/product-referral';
       Discount,
       Parameter,
       CommissionHistory,
+      User
     ]),
   ],
   controllers: [ReferralController],

@@ -18,6 +18,7 @@ import { PaymentMethodModule } from './payment-method/payment-method.module';
 import { ShoppingCartModule } from './shopping-cart/shopping-cart.module';
 import { LocaleModule } from './locale/locale.module';
 import { CommissionHistoryModule } from './commission-history/commission-history.module';
+import { ParameterModule } from './parameter/parameter.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { CommissionHistoryModule } from './commission-history/commission-history
     PaymentMethodModule,
     ShoppingCartModule,
     LocaleModule,
-    CommissionHistoryModule
+    CommissionHistoryModule,
+    ParameterModule
   ],
   controllers: [AppController],
   providers: [AppService],

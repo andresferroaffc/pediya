@@ -131,7 +131,6 @@ export class UserService {
     let roleValue = data.role;
     let typeDoc = data.type_document_id;
     let type_person = data.type_person;
-    let is_default_seller: boolean = false;
     const attributeExist = await this.uniqueAttributeUpdate(dto, data);
     if (attributeExist)
       throw new BadRequestException({
