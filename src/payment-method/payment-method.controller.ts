@@ -43,7 +43,7 @@ export class PaymentMethodController {
 
   // Consultar un metodo de pago
   @Get('find/:id')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador,RoleEnum.Vendedor,RoleEnum.Cliente)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findOne(
@@ -55,7 +55,7 @@ export class PaymentMethodController {
 
   // Consultar todos los metodos de pago
   @Get('all')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador,RoleEnum.Vendedor,RoleEnum.Cliente)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<PaymentMethod[]>> {
