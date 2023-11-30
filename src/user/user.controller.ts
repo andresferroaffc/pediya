@@ -45,7 +45,7 @@ export class UserController {
 
   // Consultar un usuario
   @Get('find/:id')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findOne(
@@ -57,7 +57,7 @@ export class UserController {
 
   // Consultar todos los usuarios
   @Get('all')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll(): Promise<HttpResponse<User[]>> {
