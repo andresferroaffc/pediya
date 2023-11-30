@@ -25,7 +25,7 @@ export class ZoneController {
   
     // Consultar un zona
     @Get('find/:id')
-    @Roles(RoleEnum.Administrador)
+    @Roles(RoleEnum.Administrador,RoleEnum.Vendedor,RoleEnum.Cliente)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @ApiBearerAuth()
     async findOne(
@@ -37,7 +37,7 @@ export class ZoneController {
   
     // Consultar todos los grupos
     @Get('all')
-    @Roles(RoleEnum.Administrador)
+    @Roles(RoleEnum.Administrador,RoleEnum.Vendedor,RoleEnum.Cliente)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @ApiBearerAuth()
     async findAll(): Promise<HttpResponse<Zone[]>> {
