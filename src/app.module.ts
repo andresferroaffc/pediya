@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from "@nestjs/config";
+import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,6 +19,8 @@ import { ShoppingCartModule } from './shopping-cart/shopping-cart.module';
 import { LocaleModule } from './locale/locale.module';
 import { CommissionHistoryModule } from './commission-history/commission-history.module';
 import { ParameterModule } from './parameter/parameter.module';
+import { DefaultDataService } from './config/defaultData';
+import { Parameter, Role, TypeDocument, User } from './shared/entity';
 
 @Module({
   imports: [
@@ -33,7 +35,7 @@ import { ParameterModule } from './parameter/parameter.module';
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       autoLoadEntities: true,
       synchronize: true,
-    },),
+    }),
     UserModule,
     AuthModule,
     RoleModule,
@@ -48,9 +50,19 @@ import { ParameterModule } from './parameter/parameter.module';
     ShoppingCartModule,
     LocaleModule,
     CommissionHistoryModule,
-    ParameterModule
+    ParameterModule,
+    TypeOrmModule.forFeature([Role, Parameter, TypeDocument, User]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DefaultDataService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly serviceDefault: DefaultDataService) {}
+
+  async onModuleInit() {
+    await this.serviceDefault.createRole();
+    await this.serviceDefault.createParameter();
+    await this.serviceDefault.createTypeDocument();
+    await this.serviceDefault.createUser();
+  }
+}

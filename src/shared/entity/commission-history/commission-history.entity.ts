@@ -14,7 +14,7 @@ export class CommissionHistory {
   id: number;
   @Column({ type: 'enum', enum: TypeCommissionHistory })
   status: TypeCommissionHistory;
-  @Column({ nullable: true, length: 45 })
+  @Column({ nullable: true, length: 200 })
   description: string;
   @Column({
     type: 'decimal',

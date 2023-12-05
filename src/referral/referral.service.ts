@@ -890,4 +890,19 @@ export class ReferralService {
       );
     }
   }
+
+  async findDateMInMax() {
+    const data = await this.referrralRepo
+      .createQueryBuilder('referral')
+      .select('MIN(referral.date_of_elaboration)', 'fecha_min')
+      .addSelect('MAX(referral.date_of_elaboration)', 'fecha_max')
+      .getRawOne();
+
+    const dataMin = new Date(data.fecha_min);
+    const dataMax = new Date(data.fecha_max);
+    return {
+      dateMin: format(dataMin, 'yyyy-MM-dd HH:mm:ss').toString(),
+      dateMax: format(dataMax, 'yyyy-MM-dd HH:mm:ss').toString(),
+    };
+  }
 }

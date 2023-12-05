@@ -326,4 +326,14 @@ export class ReferralController {
       res.status(500).send('Error al generar el archivo Excel');
     }
   }
+
+  // Consultar fecha minima y maxima pra los reportes
+  @Get('date-min-max')
+  @Roles(RoleEnum.Administrador)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  async findDateMInMax(): Promise<HttpResponse<object>> {
+    const data = await this.serviceReferral.findDateMInMax();
+    return { message: menssageSuccessResponse('rango de fechas').getOne, data };
+  }
 }
