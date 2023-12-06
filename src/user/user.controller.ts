@@ -66,17 +66,17 @@ export class UserController {
   }
 
   // Modificar usuario
-  @Patch('update-user/:id')
+  @Patch('update-user')
   @Roles(RoleEnum.Administrador, RoleEnum.Cliente, RoleEnum.Vendedor)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async updateUser(
-    @Param('id', ParseIntPipe) id: number,
+    @Query('id') id: number,
     @user('id') idUser: number,
     @user('role') role: string,
     @Body() dto: EditUserDto,
   ): Promise<HttpResponse<User>> {
-    const data = await this.serviceUser.update(id, idUser, role, dto);
+    const data = await this.serviceUser.update(idUser, role, dto,id);
     return { message: menssageSuccessResponse('usuario').put, data };
   }
 
