@@ -126,7 +126,17 @@ export class UserService {
   }
 
   // Modificar usuario
-  async update(id: number, dto: EditUserDto): Promise<User> {
+  async update(
+    id: number,
+    idUser: number,
+    role: string,
+    dto: EditUserDto,
+  ): Promise<User> {
+    if (role !== RoleEnum.Administrador && idUser !== id) {
+      throw new BadRequestException(
+        'Error, No tienes los permisos para editar este usuario.',
+      );
+    }
     const data = await this.findOne(id);
     let roleValue = data.role;
     let typeDoc = data.type_document_id;

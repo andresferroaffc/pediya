@@ -33,18 +33,18 @@ export class DefaultDataService {
         name: 'VEN',
       },
     ]);
-    newData.forEach(async (element) => {
+    for (const element of newData) {
       const existData = await this.roleRepository.findOneBy({
         name: element.name,
       });
       if (!existData) {
-        this.roleRepository.save(element).catch((Error) => {
+        await this.roleRepository.save(element).catch((Error) => {
           throw new BadRequestException(
             'Error, al crear los roles por defecto :' + Error,
           );
         });
       }
-    });
+    }
   }
 
   // Crear parametros por defecto
@@ -59,16 +59,16 @@ export class DefaultDataService {
         description: null,
       },
     ]);
-    newData.forEach(async (element) => {
+    for (const element of newData) {
       const existData = await this.parameterRepository.find();
       if (existData.length === 0) {
-        this.parameterRepository.save(element).catch((Error) => {
+        await this.parameterRepository.save(element).catch((Error) => {
           throw new BadRequestException(
             'Error, al crear los parametros por defecto :' + Error,
           );
         });
       }
-    });
+    }
   }
 
   // Crear tipo de documento por defecto
@@ -79,18 +79,19 @@ export class DefaultDataService {
         description: 'Cedula de ciudadania',
       },
     ]);
-    newData.forEach(async (element) => {
+    for (const element of newData) {
       const existData = await this.typeDocumentRepository.findOneBy({
         name: element.name,
       });
+
       if (!existData) {
-        this.typeDocumentRepository.save(element).catch((Error) => {
+        await this.typeDocumentRepository.save(element).catch((Error) => {
           throw new BadRequestException(
             'Error, al crear los tipos de documento por defecto :' + Error,
           );
         });
       }
-    });
+    }
   }
 
   // Crear usuario por defecto
@@ -101,7 +102,6 @@ export class DefaultDataService {
     const existDataRole = await this.roleRepository.findOneBy({
       name: 'ADMIN',
     });
-
     const newData = this.userRepository.create([
       {
         document: '123456789',
@@ -123,7 +123,7 @@ export class DefaultDataService {
         is_default_seller: true,
       },
     ]);
-    newData.forEach(async (element) => {
+    for (const element of newData) {
       const existData = await this.userRepository
         .createQueryBuilder('user')
         .where('user.user = :user', {
@@ -137,6 +137,6 @@ export class DefaultDataService {
           );
         });
       }
-    });
+    }
   }
 }

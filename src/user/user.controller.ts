@@ -72,9 +72,11 @@ export class UserController {
   @ApiBearerAuth()
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
+    @user('id') idUser: number,
+    @user('role') role: string,
     @Body() dto: EditUserDto,
   ): Promise<HttpResponse<User>> {
-    const data = await this.serviceUser.update(id, dto);
+    const data = await this.serviceUser.update(id, idUser, role, dto);
     return { message: menssageSuccessResponse('usuario').put, data };
   }
 

@@ -61,8 +61,8 @@ export class AppModule implements OnModuleInit {
 
   async onModuleInit() {
     await this.serviceDefault.createRole();
-    await this.serviceDefault.createParameter();
     await this.serviceDefault.createTypeDocument();
+    await this.serviceDefault.createParameter();
     await this.serviceDefault.createUser();
   }
 }
