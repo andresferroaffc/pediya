@@ -13,7 +13,7 @@ export class LocaleController {
 
   // Consultar todos los departamentos
   @Get('states-all')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador, RoleEnum.Vendedor, RoleEnum.Cliente)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findAll() {
@@ -23,7 +23,7 @@ export class LocaleController {
 
   // Consultar todos las ciudades
   @Get('citys-all/:state_name')
-  @Roles(RoleEnum.Administrador)
+  @Roles(RoleEnum.Administrador, RoleEnum.Vendedor, RoleEnum.Cliente)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   async findCityAll(@Param('state_name') state_name: string) {
