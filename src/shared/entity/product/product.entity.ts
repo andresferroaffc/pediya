@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Group } from '../group';
 import { ProductReferral } from '../product-referral';
-import { TypeProduct } from 'src/common/enum';
+import { TypeProduct } from '../../../common/enum';
 import { Discount } from '../discount';
 import { Commission } from '../commission';
 import { ShoppingCart } from '../shopping-cart';

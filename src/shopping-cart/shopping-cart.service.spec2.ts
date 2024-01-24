@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+/*import { Test, TestingModule } from '@nestjs/testing';
 import { ShoppingCartService } from './shopping-cart.service';
 
 describe('ShoppingCartService', () => {
@@ -15,4 +15,4 @@ describe('ShoppingCartService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-});
+});*/

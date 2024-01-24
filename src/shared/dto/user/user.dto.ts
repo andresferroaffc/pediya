@@ -9,7 +9,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { RoleEnum } from '../../../common/enum';
-import { TypePerson } from 'src/common/enum/type-person.enum';
+import { TypePerson } from '../../../common/enum/type-person.enum';
 
 export class UserDto {
   @ApiProperty()

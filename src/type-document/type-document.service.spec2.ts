@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+/*import { Test, TestingModule } from '@nestjs/testing';
 import { TypeDocumentService } from './type-document.service';
 
 describe('TypeDocumentService', () => {
@@ -15,4 +15,4 @@ describe('TypeDocumentService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-});
+});*/

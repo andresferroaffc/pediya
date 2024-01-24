@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { TypeProduct } from 'src/common/enum';
+import { TypeProduct } from '../../../common/enum';
 
 export class ProductDto {
   @ApiProperty()
