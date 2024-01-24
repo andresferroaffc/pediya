@@ -133,13 +133,13 @@ export class UserService {
     id?: number,
   ): Promise<User> {
     let whereUser;
-    
-    if (role !== RoleEnum.Administrador && id &&  idUser !== id) {
+
+    if (role !== RoleEnum.Administrador && id && idUser !== id) {
       throw new BadRequestException(
         'Error, No tienes los permisos para editar este usuario.',
       );
     }
-    if (role === RoleEnum.Administrador) {
+    if (role === RoleEnum.Administrador && id) {
       whereUser = id;
     } else {
       whereUser = idUser;
