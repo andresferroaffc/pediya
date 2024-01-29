@@ -116,7 +116,7 @@ export class TypeDocumentService {
           Exist = await this.typeDocumentRepo.findOneBy({
             name: name,
           });
-          if (Exist) return { valid: false, key: 'nombre' };
+          if (Exist) return { valid: false, key: 'tipo de documento' };
           break;
       }
     }
@@ -133,7 +133,7 @@ export class TypeDocumentService {
             Exist = await this.typeDocumentRepo.findOneBy({
               name: name,
             });
-            if (Exist) return { valid: false, key: 'nombre' };
+            if (Exist) return { valid: false, key: 'tipo de documento' };
             break;
           }
       }

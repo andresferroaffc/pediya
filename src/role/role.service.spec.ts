@@ -8,12 +8,8 @@ describe('RoleService', () => {
   let service: RoleService;
 
   const mockRoleRepository = {
-    find: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([{ id: Date.now(), ...Role }])),
-    findOneBy: jest
-      .fn()
-      .mockImplementation(() => ({ id: Date.now(), ...Role })),
+    find: jest.fn(),
+    findOneBy: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -31,23 +27,40 @@ describe('RoleService', () => {
     service = module.get<RoleService>(RoleService);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Servicico de rol', () => {
     expect(service).toBeDefined();
   });
 
-  it('Consultar roles', async () => {
-    expect(await service.findAll()).toEqual([
-      {
-        id: expect.any(Number),
-        ...Role,
-      },
-    ]);
+  describe('findAll', () => {
+    it('Consultar roles', async () => {
+      const rolesData: Role[] = [
+        { id: 1, name: 'admin', description: 'admin', user: [] },
+        { id: 2, name: 'cli', description: 'cliente', user: [] },
+      ];
+      mockRoleRepository.find.mockResolvedValue(rolesData);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual(rolesData);
+      expect(mockRoleRepository.find).toHaveBeenCalled();
+    });
   });
 
-  it('Consultar un rol', async () => {
-    expect(await service.findOne('ADMIN')).toEqual({
-      id: expect.any(Number),
-      ...Role,
+  describe('findOne', () => {
+    it('Consultar un rol', async () => {
+      const data = { name: 'ADMIN' };
+      mockRoleRepository.findOneBy.mockResolvedValue(data);
+
+      const result = await service.findOne('ADMIN');
+
+      expect(result).toEqual(data);
+      expect(mockRoleRepository.findOneBy).toHaveBeenCalledWith({
+        name: 'ADMIN',
+      });
     });
   });
 });
