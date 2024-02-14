@@ -558,6 +558,7 @@ export class ReferralService {
 
   // Consultar remisiones por fechas
   async findAllDate(date: string): Promise<object> {
+    console.log(date);
     let referralMany = [];
     const status = StatusReferralEnum.Cancelada;
     const referralExis = await this.referrralRepo
