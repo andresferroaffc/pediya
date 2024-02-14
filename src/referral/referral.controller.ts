@@ -87,6 +87,7 @@ export class ReferralController {
     return { message: menssageSuccessResponse('remisiones').get, data };
   }
 
+  
   // Generar excel de remisiones por fecha
   @Post('excel-referral/:date')
   @Roles(RoleEnum.Administrador)
